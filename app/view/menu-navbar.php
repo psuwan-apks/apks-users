@@ -60,7 +60,7 @@ $nextLanguage = $currentLanguage === 'en' ? 'th' : 'en'; // Determine the next l
             alt="<?php echo $currentLanguage === 'en' ? 'English' : 'Thai'; ?>"
             title="Switch to <?php echo $nextLanguage === 'en' ? 'English' : 'Thai'; ?>"
             id="language-flag"
-            width="50%" />
+            width="30" />
         </li>
         <!-- end of flag for lang -->
 

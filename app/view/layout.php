@@ -1,4 +1,5 @@
 <?php
+
 /** @var string $lang */
 /** @var array $translations */
 /** @var string $view */
@@ -34,23 +35,29 @@ $view = $view ?? '';
         * {
             font-family: 'Google Sans', sans-serif;
         }
+
         .navbar-custom {
             background-color: #f4f7f9 !important;
             transition: all 0.3s ease;
         }
+
         .lang-dropdown-btn {
             border: 1px solid rgba(0, 0, 0, 0.08) !important;
             background-color: rgba(255, 255, 255, 0.8) !important;
         }
+
         .lang-dropdown-btn:hover {
             background-color: rgba(0, 0, 0, 0.04) !important;
             border-color: rgba(0, 0, 0, 0.15) !important;
             transform: translateY(-1px);
         }
+
         .lang-dropdown-btn:active {
             transform: translateY(0);
         }
-        .dropdown-item.active, .dropdown-item:active {
+
+        .dropdown-item.active,
+        .dropdown-item:active {
             background-color: #1abc9c !important;
             color: #fff !important;
         }
@@ -73,12 +80,12 @@ $view = $view ?? '';
                     <?php echo htmlspecialchars($translations['APP_NAME'] ?? 'APKS'); ?>
                 </span>
             </div>
-            
+
             <div class="d-flex align-items-center gap-3">
                 <!-- Mobile user -->
                 <div class="dropdown">
-                    <button class="btn btn-link p-0 border-0 d-flex align-items-center text-secondary text-decoration-none" 
-                            type="button" id="mobileUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-link p-0 border-0 d-flex align-items-center text-secondary text-decoration-none"
+                        type="button" id="mobileUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <?php if (isset($_SESSION['USER'])): ?>
                             <i class="fa-thin fa-user-circle" style="font-size: 1.25rem;"></i>
                             <span class="d-none d-sm-inline ms-1 small fw-semibold"><?php echo htmlspecialchars($_SESSION['USER']['username']); ?></span>
@@ -116,23 +123,23 @@ $view = $view ?? '';
 
                 <!-- Mobile language switcher (only flag icon) -->
                 <div class="dropdown">
-                    <button class="btn btn-link dropdown-toggle p-0 border-0 d-flex align-items-center" 
-                            type="button" id="mobileLanguageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="./assets/images/flag-<?php echo $lang === 'th' ? 'th' : 'uk'; ?>.png" 
-                             alt="<?php echo $lang === 'th' ? 'Thai' : 'English'; ?>" 
-                             style="width: 20px; height: 14px; border-radius: 2px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.15);">
+                    <button class="btn btn-link dropdown-toggle p-0 border-0 d-flex align-items-center"
+                        type="button" id="mobileLanguageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="./assets/images/flag-<?php echo $lang === 'th' ? 'th' : 'uk'; ?>.png"
+                            alt="<?php echo $lang === 'th' ? 'Thai' : 'English'; ?>"
+                            style="width: 20px; height: 14px; border-radius: 2px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.15);">
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2 py-2 rounded-3" aria-labelledby="mobileLanguageDropdown" style="min-width: 120px;">
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 lang-item <?php echo $lang === 'th' ? 'lang-active' : ''; ?>" 
-                               href="#" onclick="changeLanguage('th'); return false;">
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 lang-item <?php echo $lang === 'th' ? 'lang-active' : ''; ?>"
+                                href="#" onclick="changeLanguage('th'); return false;">
                                 <img src="./assets/images/flag-th.png" alt="Thai" style="width: 18px; height: 12px; border-radius: 1px; object-fit: cover;">
                                 <span class="small fw-medium">ไทย</span>
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 lang-item <?php echo $lang === 'en' ? 'lang-active' : ''; ?>" 
-                               href="#" onclick="changeLanguage('en'); return false;">
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 lang-item <?php echo $lang === 'en' ? 'lang-active' : ''; ?>"
+                                href="#" onclick="changeLanguage('en'); return false;">
                                 <img src="./assets/images/flag-uk.png" alt="English" style="width: 18px; height: 12px; border-radius: 1px; object-fit: cover;">
                                 <span class="small fw-medium">English</span>
                             </a>
@@ -165,10 +172,10 @@ $view = $view ?? '';
                     <!-- Title/Brand or welcome message -->
                     <div class="d-flex align-items-center">
                         <span class="navbar-brand fw-semibold text-dark m-0 p-0" style="font-size: 1.1rem; letter-spacing: 0.2px;">
-                            <?php 
+                            <?php
                             $currentPage = $_GET['page'] ?? 'guest';
                             $titleKey = 'NAV_' . strtoupper(str_replace('-', '_', $currentPage));
-                            echo htmlspecialchars($translations[$titleKey] ?? $translations[strtoupper($currentPage) . '_TITLE'] ?? ucfirst($currentPage)); 
+                            echo htmlspecialchars($translations[$titleKey] ?? $translations[strtoupper($currentPage) . '_TITLE'] ?? ucfirst($currentPage));
                             ?>
                         </span>
                     </div>
@@ -187,25 +194,25 @@ $view = $view ?? '';
 
                         <!-- Language Changer Selector -->
                         <div class="dropdown">
-                            <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2 border-0 px-3 py-2 rounded-pill text-decoration-none lang-dropdown-btn" 
-                                    type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false" 
-                                    style="transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                                <img src="./assets/images/flag-<?php echo $lang === 'th' ? 'th' : 'uk'; ?>.png" 
-                                     alt="<?php echo $lang === 'th' ? 'Thai' : 'English'; ?>" 
-                                     style="width: 20px; height: 14px; border-radius: 2px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.15);">
+                            <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2 border-0 px-3 py-2 rounded-pill text-decoration-none lang-dropdown-btn"
+                                type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                <img src="./assets/images/flag-<?php echo $lang === 'th' ? 'th' : 'uk'; ?>.png"
+                                    alt="<?php echo $lang === 'th' ? 'Thai' : 'English'; ?>"
+                                    style="width: 20px; height: 14px; border-radius: 2px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.15);">
                                 <span class="fw-medium text-dark small" style="font-size: 0.85rem;"><?php echo $lang === 'th' ? 'ไทย' : 'English'; ?></span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2 py-2 rounded-3" aria-labelledby="languageDropdown" style="min-width: 140px;">
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 lang-item <?php echo $lang === 'th' ? 'lang-active' : ''; ?>" 
-                                       href="#" onclick="changeLanguage('th'); return false;">
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 lang-item <?php echo $lang === 'th' ? 'lang-active' : ''; ?>"
+                                        href="#" onclick="changeLanguage('th'); return false;">
                                         <img src="./assets/images/flag-th.png" alt="Thai" style="width: 18px; height: 12px; border-radius: 1px; object-fit: cover;">
                                         <span class="small fw-medium">ไทย</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 lang-item <?php echo $lang === 'en' ? 'lang-active' : ''; ?>" 
-                                       href="#" onclick="changeLanguage('en'); return false;">
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 lang-item <?php echo $lang === 'en' ? 'lang-active' : ''; ?>"
+                                        href="#" onclick="changeLanguage('en'); return false;">
                                         <img src="./assets/images/flag-uk.png" alt="English" style="width: 18px; height: 12px; border-radius: 1px; object-fit: cover;">
                                         <span class="small fw-medium">English</span>
                                     </a>
@@ -284,6 +291,12 @@ $view = $view ?? '';
                     }
                 });
             }
+        });
+
+        // Initialize Bootstrap tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
 
         function changeLanguage(lang) {

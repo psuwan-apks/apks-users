@@ -401,10 +401,17 @@
 }
 
 /* Language dropdown item – capsule highlight matching sidebar */
+
+/* Fix language dropdown item width to prevent highlight overflow */
 .lang-item {
+    display: inline-block;
     border-radius: 20px !important;
-    margin: 2px 6px !important;
+    margin: 0 4px;
+    padding: 2px 8px;
+    background: transparent;
     transition: background 0.3s ease;
+    box-sizing: border-box;
+    max-width: calc(100% - 8px);
 }
 
 .lang-item:hover {
@@ -418,4 +425,9 @@
     background: rgba(0, 0, 0, 0.08) !important;
     color: #000000 !important;
     font-weight: bold;
+}
+
+.lang-item:hover {
+    background: rgba(0, 0, 0, 0.06) !important;
+    color: #000000 !important;
 }
