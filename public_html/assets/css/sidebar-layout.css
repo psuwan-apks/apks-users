@@ -395,7 +395,11 @@
     display: none !important;
 }
 
-/* Hide caret arrow when sidebar is collapsed to prevent overlapping with the icon */
+/* Adjust padding and caret positioning in collapsed state to prevent overlap and add space */
+.sidebar.collapsed .nav-link {
+    padding-left: 8px;
+    padding-right: 8px;
+}
 .sidebar.collapsed .caret {
-    display: none !important;
+    right: 8px;
 }
