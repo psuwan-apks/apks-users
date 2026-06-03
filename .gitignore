@@ -1,0 +1,9 @@
+# Log files
+app/logs/*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Backup files
+app/menu/*.bak

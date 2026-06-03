@@ -1,0 +1,146 @@
+[
+    {
+        "type": "item",
+        "titleTransKey": "NAV_DASHBOARD",
+        "defaultTitle": "Dashboard",
+        "icon": "fa-thin fa-bank",
+        "url": "./",
+        "activeRule": {
+            "type": "exact_page",
+            "page": "guest"
+        }
+    },
+    {
+        "type": "collapse",
+        "id": "pagesExamples",
+        "titleTransKey": "NAV_ADMIN",
+        "defaultTitle": "Admin",
+        "icon": "fa-thin fa-book",
+        "activeRule": {
+            "type": "in_pages",
+            "pages": [
+                "admin",
+                "customers",
+                "users"
+            ]
+        },
+        "children": [
+            {
+                "titleTransKey": "NAV_ROLES_VIEW",
+                "defaultTitle": "Roles View",
+                "miniIcon": "RL",
+                "url": "./?page=admin&action=roles-view",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "admin",
+                    "action": "roles-view"
+                }
+            },
+            {
+                "titleTransKey": "NAV_CUSTOMER_VIEW",
+                "defaultTitle": "Customer View",
+                "miniIcon": "CV",
+                "url": "./?page=customers&action=customers-view",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "customers",
+                    "action": "customers-view"
+                }
+            },
+            {
+                "titleTransKey": "NAV_ROLE_ADD",
+                "defaultTitle": "Add Role",
+                "miniIcon": "AR",
+                "url": "./?page=admin&action=request-role",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "admin",
+                    "action": "request-role"
+                }
+            },
+            {
+                "titleTransKey": "NAV_CUSTOMER_ADD",
+                "defaultTitle": "Customer Add",
+                "miniIcon": "CA",
+                "url": "./?page=customers&action=customer-add",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "customers",
+                    "action": "customer-add"
+                }
+            },
+            {
+                "titleTransKey": "NAV_USERS_VIEW",
+                "defaultTitle": "Users View",
+                "miniIcon": "UV",
+                "url": "./?page=users&action=users-view",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "users",
+                    "action": "users-view"
+                }
+            },
+            {
+                "titleTransKey": "NAV_USERS_REGISTER",
+                "defaultTitle": "Register Users",
+                "miniIcon": "UR",
+                "url": "./register.php",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "register",
+                    "action": "register"
+                }
+            }
+        ]
+    },
+    {
+        "type": "collapse",
+        "id": "settingsMenu",
+        "titleTransKey": "",
+        "defaultTitle": "Settings",
+        "icon": "fa-thin fa-cog",
+        "position": "bottom",
+        "activeRule": {
+            "type": "in_pages",
+            "pages": [
+                "settings"
+            ]
+        },
+        "children": [
+            {
+                "titleTransKey": "",
+                "defaultTitle": "General Settings",
+                "miniIcon": "GS",
+                "url": "./?page=settings&action=general",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "settings",
+                    "action": "general"
+                }
+            },
+            {
+                "titleTransKey": "",
+                "defaultTitle": "System Logs",
+                "miniIcon": "SL",
+                "url": "./?page=settings&action=logs",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "settings",
+                    "action": "logs"
+                }
+            }
+        ]
+    },
+    {
+        "type": "item",
+        "titleTransKey": "",
+        "defaultTitle": "Calendar",
+        "icon": "fa-thin fa-calendar",
+        "url": "./examples/calendar.php",
+        "position": "bottom",
+        "activeRule": {
+            "type": "uri_match",
+            "value": "examples/calendar.php"
+        }
+    }
+]
