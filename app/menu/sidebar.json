@@ -3,19 +3,21 @@
         "type": "item",
         "titleTransKey": "NAV_DASHBOARD",
         "defaultTitle": "Dashboard",
-        "icon": "fa-thin fa-bank",
+        "icon": "fa-sharp fa-thin fa-grid",
         "url": "./",
         "activeRule": {
             "type": "exact_page",
             "page": "guest"
-        }
+        },
+        "position": "top",
+        "miniIcon": ""
     },
     {
         "type": "collapse",
         "id": "pagesExamples",
         "titleTransKey": "NAV_ADMIN",
         "defaultTitle": "Admin",
-        "icon": "fa-thin fa-book",
+        "icon": "fa-thin fa-users-gear",
         "activeRule": {
             "type": "in_pages",
             "pages": [
@@ -91,13 +93,14 @@
                     "action": "register"
                 }
             }
-        ]
+        ],
+        "position": "top"
     },
     {
         "type": "item",
         "titleTransKey": "",
         "defaultTitle": "Calendar",
-        "icon": "fa-thin fa-calendar",
+        "icon": "fa-thin fa-calendar-days",
         "url": "./examples/calendar.php",
         "position": "top",
         "activeRule": {
@@ -111,7 +114,7 @@
         "id": "settingsMenu",
         "titleTransKey": "",
         "defaultTitle": "Settings",
-        "icon": "fa-thin fa-cog",
+        "icon": "fa-sharp fa-thin fa-screwdriver-wrench",
         "position": "bottom",
         "activeRule": {
             "type": "in_pages",
