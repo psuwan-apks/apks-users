@@ -168,8 +168,8 @@
     text-decoration: none;
 }
 .nav-link.active, .nav-item.active > .nav-link {
-    background: #1abc9c;
-    color: #fff;
+    background: rgba(0, 0, 0, 0.08);
+    color: #000000;
     font-weight: bold;
 }
 .sidebar .nav {

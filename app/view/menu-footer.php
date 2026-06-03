@@ -3,7 +3,7 @@
           <div class="row">
             <nav class="footer-nav">
               <ul>
-                <li><a href="http://www.apks-software.com" target="_blank">apks</a></li>
+                <li>[<a href="http://www.apks-software.com" target="_blank">APKS</a>]</li>
                 <!-- <li><a href="https://www.apks-software.com/blog" target="_blank">Blog</a></li>
                 <li><a href="https://www.apks-software.com/license" target="_blank">Licenses</a></li> -->
               </ul>

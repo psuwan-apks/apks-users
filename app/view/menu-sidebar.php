@@ -78,7 +78,7 @@ global $translations;
 
       if (($item['type'] ?? 'item') === 'item') {
           ?>
-          <li>
+          <li class="<?php echo $menuActive($isActive); ?>">
               <a class="nav-link" href="<?php echo htmlspecialchars($item['url']); ?>">
                   <i class="<?php echo htmlspecialchars($item['icon']); ?>"></i>
                   <p><?php echo htmlspecialchars($title); ?></p>
@@ -96,7 +96,7 @@ global $translations;
           }
           $isExpanded = $isActive || $isAnyChildActive;
           ?>
-          <li>
+          <li class="<?php echo $menuActive($isExpanded); ?>">
               <a data-bs-toggle="collapse" data-bs-target="#<?php echo htmlspecialchars($item['id']); ?>" href="#" class="nav-link <?php echo $isExpanded ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $isExpanded ? 'true' : 'false'; ?>">
                   <i class="<?php echo htmlspecialchars($item['icon']); ?>"></i>
                   <p>
@@ -113,12 +113,12 @@ global $translations;
                                           ? $translations[$child['titleTransKey']]
                                           : ($child['defaultTitle'] ?? '');
                           ?>
-                          <li>
-                              <a class="nav-link" href="<?php echo htmlspecialchars($child['url']); ?>">
-                                  <span class="sidebar-mini-icon"><?php echo htmlspecialchars($child['miniIcon']); ?></span>
-                                  <span class="sidebar-normal"> <?php echo htmlspecialchars($childTitle); ?> </span>
-                              </a>
-                          </li>
+                           <li class="<?php echo $menuActive($isChildActive); ?>">
+                               <a class="nav-link" href="<?php echo htmlspecialchars($child['url']); ?>">
+                                   <span class="sidebar-mini-icon"><?php echo htmlspecialchars($child['miniIcon']); ?></span>
+                                   <span class="sidebar-normal"> <?php echo htmlspecialchars($childTitle); ?> </span>
+                               </a>
+                           </li>
                       <?php endforeach; ?>
                   </ul>
               </div>
@@ -140,7 +140,7 @@ global $translations;
     // User menu with sub-items
     $userMenuExpanded = (isset($_SESSION['loggedin']) && $_SESSION['loggedin']) || ($currentPage === 'user');
     ?>
-<li class="nav-item">
+<li class="nav-item <?php echo $userMenuExpanded ? 'active' : ''; ?>">
     <a data-bs-toggle="collapse" href="#userMenu" class="nav-link <?php echo $userMenuExpanded ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $userMenuExpanded ? 'true' : 'false'; ?>">
         <i class="fa-thin fa-user"></i>
         <p>User</p>
@@ -155,13 +155,13 @@ global $translations;
                 </a>
             </li>
             <?php else: ?>
-            <li class="nav-item">
+            <li class="nav-item <?php echo ($currentPage === 'user' && $currentAction === 'user-login') ? 'active' : ''; ?>">
                 <a href="?page=user&action=user-login" class="nav-link">
                     <i class="fa-thin fa-user" style="font-size:14px;"></i>
                     <p>Login</p>
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item <?php echo ($currentPage === 'user' && $currentAction === 'user-register') ? 'active' : ''; ?>">
                 <a href="?page=user&action=user-register" class="nav-link">
                     <i class="fa-thin fa-user-plus" style="font-size:14px;"></i>
                     <p>Register</p>
