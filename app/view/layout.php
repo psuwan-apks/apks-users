@@ -143,7 +143,17 @@ $view = $view ?? '';
         </div>
         <!-- Overlay backdrop for mobile sidebar -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
-        <div class="sidebar collapsed" data-color="default" data-active-color="danger">
+        <div class="sidebar collapsed" id="sidebarContainer" data-color="default" data-active-color="danger">
+            <script>
+                (function() {
+                    var state = localStorage.getItem('sidebar-state');
+                    if (state === 'expanded') {
+                        document.getElementById('sidebarContainer').classList.remove('collapsed');
+                    } else if (state === 'collapsed') {
+                        document.getElementById('sidebarContainer').classList.add('collapsed');
+                    }
+                })();
+            </script>
             <?php
             require_once 'menu-sidebar.php';
             ?>
@@ -239,6 +249,8 @@ $view = $view ?? '';
                     e.preventDefault();
                     if (!isMobile()) {
                         sidebar.classList.toggle('collapsed');
+                        const isCollapsed = sidebar.classList.contains('collapsed');
+                        localStorage.setItem('sidebar-state', isCollapsed ? 'collapsed' : 'expanded');
                     }
                 });
             }
