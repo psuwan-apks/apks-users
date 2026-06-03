@@ -78,7 +78,7 @@ global $translations;
 
       if (($item['type'] ?? 'item') === 'item') {
           ?>
-          <li class="<?php echo $menuActive($isActive); ?>">
+          <li>
               <a class="nav-link" href="<?php echo htmlspecialchars($item['url']); ?>">
                   <i class="<?php echo htmlspecialchars($item['icon']); ?>"></i>
                   <p><?php echo htmlspecialchars($title); ?></p>
@@ -86,16 +86,25 @@ global $translations;
           </li>
           <?php
       } elseif (($item['type'] ?? 'item') === 'collapse') {
+          // Check if any child item is active
+          $isAnyChildActive = false;
+          foreach (($item['children'] ?? []) as $child) {
+              if ($isActiveRule($child['activeRule'] ?? null)) {
+                  $isAnyChildActive = true;
+                  break;
+              }
+          }
+          $isExpanded = $isActive || $isAnyChildActive;
           ?>
-          <li class="<?php echo $menuActive($isActive); ?>">
-              <a data-bs-toggle="collapse" data-bs-target="#<?php echo htmlspecialchars($item['id']); ?>" href="#" class="nav-link <?php echo $isActive ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $isActive ? 'true' : 'false'; ?>">
+          <li>
+              <a data-bs-toggle="collapse" data-bs-target="#<?php echo htmlspecialchars($item['id']); ?>" href="#" class="nav-link <?php echo $isExpanded ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $isExpanded ? 'true' : 'false'; ?>">
                   <i class="<?php echo htmlspecialchars($item['icon']); ?>"></i>
                   <p>
                       <?php echo htmlspecialchars($title); ?>
                   </p>
                   <b class="caret"></b>
               </a>
-              <div class="collapse <?php echo $collapseShow($isActive); ?>" id="<?php echo htmlspecialchars($item['id']); ?>">
+              <div class="collapse <?php echo $collapseShow($isExpanded); ?>" id="<?php echo htmlspecialchars($item['id']); ?>">
                   <ul class="nav">
                       <?php foreach (($item['children'] ?? []) as $child): ?>
                           <?php 
@@ -104,7 +113,7 @@ global $translations;
                                           ? $translations[$child['titleTransKey']]
                                           : ($child['defaultTitle'] ?? '');
                           ?>
-                          <li class="<?php echo $menuActive($isChildActive); ?>">
+                          <li>
                               <a class="nav-link" href="<?php echo htmlspecialchars($child['url']); ?>">
                                   <span class="sidebar-mini-icon"><?php echo htmlspecialchars($child['miniIcon']); ?></span>
                                   <span class="sidebar-normal"> <?php echo htmlspecialchars($childTitle); ?> </span>
@@ -129,13 +138,14 @@ global $translations;
       <?php foreach ($bottomItems as $item) { $renderItem($item); } ?>
       <?php
     // User menu with sub-items
+    $userMenuExpanded = (isset($_SESSION['loggedin']) && $_SESSION['loggedin']) || ($currentPage === 'user');
     ?>
 <li class="nav-item">
-    <a data-bs-toggle="collapse" href="#userMenu" class="nav-link <?php echo (isset($_SESSION['loggedin']) && $_SESSION['loggedin']) ? '' : 'collapsed'; ?>" aria-expanded="<?php echo (isset($_SESSION['loggedin']) && $_SESSION['loggedin']) ? 'true' : 'false'; ?>">
+    <a data-bs-toggle="collapse" href="#userMenu" class="nav-link <?php echo $userMenuExpanded ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $userMenuExpanded ? 'true' : 'false'; ?>">
         <i class="fa-thin fa-user"></i>
         <p>User</p>
     </a>
-    <div class="collapse <?php echo (isset($_SESSION['loggedin']) && $_SESSION['loggedin']) ? 'show' : ''; ?>" id="userMenu">
+    <div class="collapse <?php echo $userMenuExpanded ? 'show' : ''; ?>" id="userMenu">
         <ul class="nav">
             <?php if (isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
             <li class="nav-item">

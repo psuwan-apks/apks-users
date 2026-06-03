@@ -94,6 +94,19 @@
         ]
     },
     {
+        "type": "item",
+        "titleTransKey": "",
+        "defaultTitle": "Calendar",
+        "icon": "fa-thin fa-calendar",
+        "url": "./examples/calendar.php",
+        "position": "top",
+        "activeRule": {
+            "type": "uri_match",
+            "value": "examples/calendar.php"
+        },
+        "miniIcon": ""
+    },
+    {
         "type": "collapse",
         "id": "settingsMenu",
         "titleTransKey": "",
@@ -130,17 +143,5 @@
                 }
             }
         ]
-    },
-    {
-        "type": "item",
-        "titleTransKey": "",
-        "defaultTitle": "Calendar",
-        "icon": "fa-thin fa-calendar",
-        "url": "./examples/calendar.php",
-        "position": "bottom",
-        "activeRule": {
-            "type": "uri_match",
-            "value": "examples/calendar.php"
-        }
     }
 ]

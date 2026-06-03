@@ -347,3 +347,8 @@
         padding: 15px;
     }
 }
+
+/* Hide collapsible submenus when sidebar is collapsed */
+.sidebar.collapsed .collapse {
+    display: none !important;
+}
