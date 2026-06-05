@@ -3,6 +3,8 @@
         "type": "item",
         "titleTransKey": "NAV_DASHBOARD",
         "defaultTitle": "Dashboard",
+        "tooltipTransKey": "NAV_DASHBOARD_TOOLTIP",
+        "defaultTooltip": "Dashboard Overview",
         "icon": "fa-sharp fa-thin fa-grid",
         "url": "./",
         "activeRule": {
@@ -17,6 +19,8 @@
         "id": "pagesExamples",
         "titleTransKey": "NAV_ADMIN",
         "defaultTitle": "Admin",
+        "tooltipTransKey": "NAV_ADMIN_TOOLTIP",
+        "defaultTooltip": "Admin Panel",
         "icon": "fa-thin fa-users-gear",
         "activeRule": {
             "type": "in_pages",
@@ -30,6 +34,8 @@
             {
                 "titleTransKey": "NAV_ROLES_VIEW",
                 "defaultTitle": "Roles View",
+                "tooltipTransKey": "NAV_ROLES_VIEW_TOOLTIP",
+                "defaultTooltip": "View Roles",
                 "miniIcon": "RL",
                 "url": "./?page=admin&action=roles-view",
                 "activeRule": {
@@ -41,6 +47,8 @@
             {
                 "titleTransKey": "NAV_CUSTOMER_VIEW",
                 "defaultTitle": "Customer View",
+                "tooltipTransKey": "NAV_CUSTOMER_VIEW_TOOLTIP",
+                "defaultTooltip": "View Customers",
                 "miniIcon": "CV",
                 "url": "./?page=customers&action=customers-view",
                 "activeRule": {
@@ -52,6 +60,8 @@
             {
                 "titleTransKey": "NAV_ROLE_ADD",
                 "defaultTitle": "Add Role",
+                "tooltipTransKey": "NAV_ROLE_ADD_TOOLTIP",
+                "defaultTooltip": "Add Role",
                 "miniIcon": "AR",
                 "url": "./?page=admin&action=request-role",
                 "activeRule": {
@@ -63,6 +73,8 @@
             {
                 "titleTransKey": "NAV_CUSTOMER_ADD",
                 "defaultTitle": "Customer Add",
+                "tooltipTransKey": "NAV_CUSTOMER_ADD_TOOLTIP",
+                "defaultTooltip": "Customer Add",
                 "miniIcon": "CA",
                 "url": "./?page=customers&action=customer-add",
                 "activeRule": {
@@ -74,6 +86,8 @@
             {
                 "titleTransKey": "NAV_USERS_VIEW",
                 "defaultTitle": "Users View",
+                "tooltipTransKey": "NAV_USERS_VIEW_TOOLTIP",
+                "defaultTooltip": "Users View",
                 "miniIcon": "UV",
                 "url": "./?page=users&action=users-view",
                 "activeRule": {
@@ -85,6 +99,8 @@
             {
                 "titleTransKey": "NAV_USERS_REGISTER",
                 "defaultTitle": "Register Users",
+                "tooltipTransKey": "NAV_USERS_REGISTER_TOOLTIP",
+                "defaultTooltip": "Register Users",
                 "miniIcon": "UR",
                 "url": "./register.php",
                 "activeRule": {
@@ -100,8 +116,10 @@
         "type": "item",
         "titleTransKey": "",
         "defaultTitle": "Calendar",
+        "tooltipTransKey": "NAV_CALENDAR_TOOLTIP",
+        "defaultTooltip": "Calendar Events",
         "icon": "fa-thin fa-calendar-days",
-        "url": "./examples/calendar.php",
+        "url": "?page=calendar",
         "position": "top",
         "activeRule": {
             "type": "uri_match",
@@ -114,6 +132,8 @@
         "id": "settingsMenu",
         "titleTransKey": "",
         "defaultTitle": "Settings",
+        "tooltipTransKey": "NAV_SETTINGS_TOOLTIP",
+        "defaultTooltip": "System Settings",
         "icon": "fa-sharp fa-thin fa-screwdriver-wrench",
         "position": "bottom",
         "activeRule": {
@@ -126,6 +146,8 @@
             {
                 "titleTransKey": "",
                 "defaultTitle": "General Settings",
+                "tooltipTransKey": "NAV_GENERAL_SETTINGS_TOOLTIP",
+                "defaultTooltip": "General Settings",
                 "miniIcon": "GS",
                 "url": "./?page=settings&action=general",
                 "activeRule": {
@@ -137,6 +159,8 @@
             {
                 "titleTransKey": "",
                 "defaultTitle": "System Logs",
+                "tooltipTransKey": "NAV_SYSTEM_LOGS_TOOLTIP",
+                "defaultTooltip": "System Logs",
                 "miniIcon": "SL",
                 "url": "./?page=settings&action=logs",
                 "activeRule": {

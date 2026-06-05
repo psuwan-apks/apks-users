@@ -1,51 +1,38 @@
 <?php
-
 // Session
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Simple hardcoded users (username => password)
-$users = [
-    'admin' => 'admin123',
-    'user' => 'password',
-];
+require_once __DIR__ . '/../../model/user.php';
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
+    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    if (isset($users[$username]) && $users[$username] === $password) {
-        // Successful login
+    if (User::authenticate($username, $password)) {
+        log_event('user_login', 'success', 'User logged in: ' . $username, $username);
         $_SESSION['loggedin'] = true;
         $_SESSION['username'] = $username;
+        $_SESSION['USER'] = ['username' => $username];
         header('Location: ../../index.php');
         exit;
     } else {
+        log_event('user_login', 'failure', 'Login failed for: ' . $username, $username);
         $error = 'Invalid username or password.';
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
-</head>
-<body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <?php if ($error): ?>
-            <p class="error"><?php echo htmlspecialchars($error); ?></p>
-        <?php endif; ?>
-        <form method="post" action="">
-            <label for="username">Username:</label>
-            <input type="text" name="username" id="username" required>
-            <label for="password">Password:</label>
-            <input type="password" name="password" id="password" required>
-            <button type="submit">Login</button>
-        </form>
-    </div>
-</body>
-</html>
+<div class="login-container">
+    <h2>Login</h2>
+    <?php if ($error): ?>
+        <p class="error"><?php echo htmlspecialchars($error); ?></p>
+    <?php endif; ?>
+    <form method="post" action="">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required>
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required>
+        <button type="submit">Login</button>
+    </form>
+</div>

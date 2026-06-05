@@ -2,12 +2,12 @@
 // Set timezone
 date_default_timezone_set('Asia/Bangkok');
 
-function get($name, $default = '')
+function get(string $name, string $default = ''): string
 {
     return $_REQUEST[$name] ?? $default;
 }
 
-function token_gen($length)
+function token_gen(int $length): string
 {
     // Define the characters to use in the token
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -22,10 +22,10 @@ function token_gen($length)
     return $randomToken;
 }
 
-function log_event($event_type, $result, $message, $user = null, $context = [], $log_file = null)
+function log_event(string $event_type, string $result, string $message, ?string $user = null, array $context = [], ?string $log_file = null): bool
 {
     if ($log_file === null) {
-        $log_file = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'events.log';
+        $log_file = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . date('Ymd') . '.log';
     }
 
     $payload = [

@@ -9,13 +9,13 @@ global $translations;
     <a href="#" class="simple-text logo-mini">
         <div class="logo-image-small">
             <img class="logo-img" src="./assets/images/logo-apks.svg" style="width: 24px;">
-            <i class="logo-icon fa-thin fa-arrow-right-to-line"></i>
+            <i class="logo-icon fa-thin fa-arrow-right-to-line" data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['EXPAND_SIDEBAR'] ?? 'Expand sidebar'); ?>"></i>
         </div>
     </a>
     <a href="#" class="simple-text logo-normal pl-2">
         <?php echo htmlspecialchars($translations['APP_NAME'] ?? 'APKS'); ?>
     </a>
-    <i class="sidebar-collapse-btn fa-thin fa-arrow-left-to-line"></i>
+    <i class="sidebar-collapse-btn fa-thin fa-arrow-left-to-line" data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['CLOSE_SIDEBAR'] ?? 'Close sidebar'); ?>"></i>
 </div>
 
 <div class="sidebar-wrapper">
@@ -76,10 +76,15 @@ global $translations;
                 ? $translations[$item['titleTransKey']] 
                 : ($item['defaultTitle'] ?? '');
 
+      $tooltip = !empty($item['tooltipTransKey']) && isset($translations[$item['tooltipTransKey']]) 
+                ? $translations[$item['tooltipTransKey']] 
+                : ($item['defaultTooltip'] ?? $item['tooltip'] ?? '');
+
       if (($item['type'] ?? 'item') === 'item') {
           ?>
           <li class="<?php echo $menuActive($isActive); ?>">
-              <a class="nav-link" href="<?php echo htmlspecialchars($item['url']); ?>">
+              <a class="nav-link" href="<?php echo htmlspecialchars($item['url']); ?>"
+                 <?php if (!empty($tooltip)): ?> data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($tooltip); ?>"<?php endif; ?>>
                   <i class="<?php echo htmlspecialchars($item['icon']); ?>"></i>
                   <p><?php echo htmlspecialchars($title); ?></p>
               </a>
@@ -97,7 +102,8 @@ global $translations;
           $isExpanded = $isActive || $isAnyChildActive;
           ?>
           <li class="<?php echo $menuActive($isExpanded); ?>">
-              <a data-bs-toggle="collapse" data-bs-target="#<?php echo htmlspecialchars($item['id']); ?>" href="#" class="nav-link <?php echo $isExpanded ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $isExpanded ? 'true' : 'false'; ?>">
+              <a data-bs-toggle="collapse" data-bs-target="#<?php echo htmlspecialchars($item['id']); ?>" href="#" class="nav-link <?php echo $isExpanded ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $isExpanded ? 'true' : 'false'; ?>"
+                 <?php if (!empty($tooltip)): ?> data-bs-custom-tooltip="true" data-bs-placement="right" title="<?php echo htmlspecialchars($tooltip); ?>"<?php endif; ?>>
                   <i class="<?php echo htmlspecialchars($item['icon']); ?>"></i>
                   <p>
                       <?php echo htmlspecialchars($title); ?>
@@ -112,9 +118,13 @@ global $translations;
                            $childTitle = !empty($child['titleTransKey']) && isset($translations[$child['titleTransKey']])
                                           ? $translations[$child['titleTransKey']]
                                           : ($child['defaultTitle'] ?? '');
+                           $childTooltip = !empty($child['tooltipTransKey']) && isset($translations[$child['tooltipTransKey']])
+                                          ? $translations[$child['tooltipTransKey']]
+                                          : ($child['defaultTooltip'] ?? $child['tooltip'] ?? '');
                           ?>
                            <li class="<?php echo $menuActive($isChildActive); ?>">
-                               <a class="nav-link" href="<?php echo htmlspecialchars($child['url']); ?>">
+                               <a class="nav-link" href="<?php echo htmlspecialchars($child['url']); ?>"
+                                  <?php if (!empty($childTooltip)): ?> data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($childTooltip); ?>"<?php endif; ?>>
                                    <span class="sidebar-mini-icon"><?php echo htmlspecialchars($child['miniIcon']); ?></span>
                                    <span class="sidebar-normal"> <?php echo htmlspecialchars($childTitle); ?> </span>
                                </a>
@@ -141,7 +151,8 @@ global $translations;
     $userMenuExpanded = (isset($_SESSION['loggedin']) && $_SESSION['loggedin']) || ($currentPage === 'user');
     ?>
 <li class="nav-item <?php echo $userMenuExpanded ? 'active' : ''; ?>">
-    <a data-bs-toggle="collapse" href="#userMenu" class="nav-link <?php echo $userMenuExpanded ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $userMenuExpanded ? 'true' : 'false'; ?>">
+    <a data-bs-toggle="collapse" href="#userMenu" class="nav-link <?php echo $userMenuExpanded ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $userMenuExpanded ? 'true' : 'false'; ?>"
+       data-bs-custom-tooltip="true" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['NAV_USER_TOOLTIP'] ?? 'User Account'); ?>">
         <i class="fa-thin fa-user"></i>
         <p>User</p>
     </a>
@@ -149,29 +160,41 @@ global $translations;
         <ul class="nav">
             <?php if (isset($_SESSION['loggedin']) && $_SESSION['loggedin']): ?>
             <li class="nav-item">
-                <a href="./logout.php" class="nav-link">
+                <a href="./logout.php" class="nav-link"
+                   data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['NAV_LOGOUT_TOOLTIP'] ?? 'Logout'); ?>">
                     <i class="fa-thin fa-right-from-bracket"></i>
                     <p>Logout</p>
                 </a>
             </li>
             <?php else: ?>
             <li class="nav-item <?php echo ($currentPage === 'user' && $currentAction === 'user-login') ? 'active' : ''; ?>">
-                <a href="?page=user&action=user-login" class="nav-link">
+                <a href="?page=user&action=user-login" class="nav-link"
+                   data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['NAV_LOGIN_TOOLTIP'] ?? 'Login'); ?>">
                     <i class="fa-thin fa-user" style="font-size:14px;"></i>
                     <p>Login</p>
                 </a>
             </li>
+            
             <li class="nav-item <?php echo ($currentPage === 'user' && $currentAction === 'user-register') ? 'active' : ''; ?>">
-                <a href="?page=user&action=user-register" class="nav-link">
-                    <i class="fa-thin fa-user-plus" style="font-size:14px;"></i>
+                <a href="?page=user&action=user-register" class="nav-link"
+                   data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['NAV_REGISTER_TOOLTIP'] ?? 'Register'); ?>">
+                    <i class="fa-thin fa-user" style="font-size:14px;"></i>
                     <p>Register</p>
                 </a>
             </li>
+
             <?php endif; ?>
         </ul>
     </div>
 </li>
-<?php
-?>
   </ul>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var customTooltips = [].slice.call(document.querySelectorAll('[data-bs-custom-tooltip="true"]'));
+    customTooltips.forEach(function (el) {
+        new bootstrap.Tooltip(el);
+    });
+});
+</script>

@@ -2,10 +2,22 @@
 class User {
     private static string $dataFile = __DIR__ . '/users.json';
 
-    // Load all users from JSON file
+    // Load all users from JSON file, seeding default users if empty/not exists
     private static function loadUsers(): array {
         if (!file_exists(self::$dataFile)) {
-            return [];
+            // Seed default hardcoded users
+            $defaultUsers = [
+                [
+                    'username' => 'admin',
+                    'password_hash' => password_hash('admin123', PASSWORD_DEFAULT)
+                ],
+                [
+                    'username' => 'user',
+                    'password_hash' => password_hash('password', PASSWORD_DEFAULT)
+                ]
+            ];
+            self::saveUsers($defaultUsers);
+            return $defaultUsers;
         }
         $json = file_get_contents(self::$dataFile);
         $data = json_decode($json, true);
@@ -22,11 +34,20 @@ class User {
     public static function findByUsername(string $username): ?array {
         $users = self::loadUsers();
         foreach ($users as $user) {
-            if ($user['username'] === $username) {
+            if (strtolower($user['username']) === strtolower($username)) {
                 return $user;
             }
         }
         return null;
+    }
+
+    // Authenticate a user by username and password
+    public static function authenticate(string $username, string $password): bool {
+        $user = self::findByUsername($username);
+        if ($user && password_verify($password, $user['password_hash'])) {
+            return true;
+        }
+        return false;
     }
 
     // Create a new user with hashed password
@@ -60,6 +81,6 @@ switch ($ACT2PROCESS):
     case "user-register":
         $view = $current_view . "user-register.php";
         break;
-
+        
 endswitch;
 ?>

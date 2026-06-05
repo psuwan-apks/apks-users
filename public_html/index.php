@@ -44,9 +44,14 @@ if ($model && file_exists($model)) {
 }
 
 if (file_exists($view)) {
-    // Simple MVC: render the selected view inside the main layout
-    $main_content = $view;
-    include_once $config['PATH_TO_VIEW'] . "layout.php";
+    $bypass_layout = (strpos($page, 'pdf') !== false) || (isset($use_layout) && !$use_layout);
+    if ($bypass_layout) {
+        include_once $view;
+    } else {
+        // Simple MVC: render the selected view inside the main layout
+        $main_content = $view;
+        include_once $config['PATH_TO_VIEW'] . "layout.php";
+    }
 } else {
     include_once $config['PATH_TO_VIEW'] . '404.php';
 }
