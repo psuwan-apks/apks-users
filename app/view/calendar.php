@@ -36,6 +36,71 @@ $calendarLocale = ($lang === 'th') ? 'th-TH' : 'en-US';
     #calendar-app {
         height: 680px;
     }
+
+    .calendar-container {
+        max-width: 640px;
+        margin: 20px auto;
+        padding: 0 12px;
+        height: calc(100vh - 40px);
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3);
+        border-radius: 20px;
+        overflow: hidden;
+        background: #1e2937;
+    }
+
+    .header {
+        background: rgba(15, 23, 42, 0.95);
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #334155;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #a5b4fc, #c4d0ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* === CAPSULE BUTTONS === */
+    .sx__button,
+    .sx__today-button,
+    .sx__view-selection-selected-item,
+    .sx__date-input {
+        border-radius: 9999px !important;
+        /* Makes buttons fully capsule/pill */
+        padding: 4px 12px !important;
+        font-weight: 600;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 32px !important;
+    }
+    
+    .sx__calendar-header {
+        align-items: center !important;
+    }
+
+    /* Make view switcher buttons more capsule */
+    .sx__view-switcher button {
+        border-radius: 9999px !important;
+    }
+
+    /* Today button & other controls */
+    .sx__today-button,
+    .sx__date-picker-button {
+        border-radius: 9999px !important;
+    }
+
+    /* Optional: nicer hover effect */
+    .sx__button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+    }
 </style>
 
 <div class="calendar-wrapper">
@@ -108,7 +173,9 @@ $calendarLocale = ($lang === 'th') ? 'th-TH' : 'en-US';
 
     // Add Thai translations when locale is Thai
     if (currentLocale === 'th-TH') {
-        calendarConfig.translations = { thTH };
+        calendarConfig.translations = {
+            thTH
+        };
     }
 
     const calendar = createCalendar(calendarConfig);

@@ -9,13 +9,13 @@ global $translations;
     <a href="#" class="simple-text logo-mini">
         <div class="logo-image-small">
             <img class="logo-img" src="./assets/images/logo-apks.svg" style="width: 24px;">
-            <i class="logo-icon fa-thin fa-arrow-right-to-line" data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['EXPAND_SIDEBAR'] ?? 'Expand sidebar'); ?>"></i>
+            <i class="logo-icon fa-thin fa-arrow-right-from-bracket" data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['EXPAND_SIDEBAR'] ?? 'Expand sidebar'); ?>"></i>
         </div>
     </a>
     <a href="#" class="simple-text logo-normal pl-2">
         <?php echo htmlspecialchars($translations['APP_NAME'] ?? 'APKS'); ?>
     </a>
-    <i class="sidebar-collapse-btn fa-thin fa-arrow-left-to-line" data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['CLOSE_SIDEBAR'] ?? 'Close sidebar'); ?>"></i>
+    <i class="sidebar-collapse-btn fa-thin fa-arrow-left-from-bracket" data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['CLOSE_SIDEBAR'] ?? 'Close sidebar'); ?>"></i>
 </div>
 
 <div class="sidebar-wrapper">
