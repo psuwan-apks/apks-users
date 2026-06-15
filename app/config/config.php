@@ -13,4 +13,5 @@ include_once $config['PATH_TO_LIB'] . 'functions.php';
 include_once $config['PATH_TO_LIB'] . 'functions-mysql.php';
 include_once $config['PATH_TO_LIB'] . 'functions-datetime.php';
 include_once $config['PATH_TO_LIB'] . 'functions-lang.php';
-include_once $config['PATH_TO_LIB'] . 'fpdf19' . DS . 'fpdf.php';
+/* include_once $config['PATH_TO_LIB'] . 'fpdf19' . DS . 'fpdf.php'; */
+include_once $config['PATH_TO_LIB'] . 'tcpdf' . DS . 'tcpdf.php';

@@ -1,6 +1,6 @@
 # APKS Web Application
 
-APKS is a modern, lightweight, custom-built PHP web application leveraging a home-grown Model-View-Controller (MVC) pattern. It features an interactive layout, localized dual-language support (English/Thai), a dynamic drag-and-drop navigation menu manager, an integrated Schedule-X calendar system, secure session-based authentication, and Thai-compatible PDF generation via FPDF.
+APKS is a modern, lightweight, custom-built PHP web application leveraging a home-grown Model-View-Controller (MVC) pattern. It features an interactive layout, localized dual-language support (English/Thai), a dynamic drag-and-drop navigation menu manager, an integrated Schedule-X calendar system, secure session-based authentication, and Thai-compatible PDF generation via TCPDF.
 
 ---
 
@@ -12,7 +12,7 @@ APKS is a modern, lightweight, custom-built PHP web application leveraging a hom
 - **Icons**: FontAwesome (Pro/Thin variant icons)
 - **Interactive Scripts**: jQuery 4.0.0, Popper.js, and SortableJS
 - **Calendar Engine**: Schedule-X Calendar v4.6.0 (Preact & core signals bundle)
-- **PDF Generation**: FPDF v1.9 with custom Thai font maps
+- **PDF Generation**: TCPDF with pre-compiled Thai font mappings (THSarabunPSK)
 
 ---
 
@@ -29,7 +29,7 @@ apks-web/
 │   │   ├── en.php              # English localization strings
 │   │   └── th.php              # Thai localization strings
 │   ├── lib/                    # Helper libraries & custom functions
-│   │   ├── fpdf19/             # FPDF core library
+│   │   ├── tcpdf/              # TCPDF core library
 │   │   ├── functions.php       # General helper utilities (UUIDs, event logging)
 │   │   ├── functions-datetime.php # Gregorian (AD) <=> Buddhist (BE) converters
 │   │   ├── functions-lang.php  # Translation dictionary manager
@@ -52,7 +52,7 @@ apks-web/
 │       └── page-dashboard.php  # Main dashboard view content
 └── public_html/                # Web Server Document Root (Publicly Accessible)
     ├── assets/                 # Frontend libraries, stylesheets, & assets
-    ├── ex-genpdf.php           # FPDF Thai script PDF generation example
+    ├── ex-genpdf.php           # TCPDF Thai script PDF generation example
     ├── index.php               # Front controller & request router
     ├── logout.php              # Sign-out logic and session destruction
     ├── menu-manager.php        # Visual Sidebar Menu Manager (Developer tool)
@@ -91,8 +91,8 @@ Dual-language support (English and Thai) is toggled globally.
 - Passwords are securely encrypted using standard PHP `password_hash` with `PASSWORD_DEFAULT` and checked using `password_verify`.
 
 ### 6. Thai PDF Generation
-- Integrates FPDF with the Thai National font **THSarabunNew**.
-- Translates character mappings into CP874 encoding (`iconv('UTF-8', 'cp874', ...)`) so that Thai scripts, vowel marks, and tone marks render with correct layout geometry.
+- Integrates TCPDF with the Thai National font **THSarabunPSK** (regular and bold).
+- Uses native UTF-8 Unicode font handling directly without requiring CP874 encodings, displaying Thai characters, vowel marks, and tone marks with correct alignment.
 - An example implementation is provided in `public_html/ex-genpdf.php`.
 
 ### 7. Core Helpers
