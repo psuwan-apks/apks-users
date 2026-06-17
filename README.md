@@ -21,54 +21,66 @@ It features an interactive layout, localized dual-language support (English/Thai
 ## 📁 Directory Structure
 
 ```text
-apks-users/
-├── app/                        # Main Application Code (Protected)
-│   ├── config/                 # Application configuration & paths mapping
-│   │   └── config.php          # Central configuration & libraries loader
-│   ├── data/                   # JSON-based data stores
-│   │   └── calendar-events.json
-│   ├── lang/                   # Localization translation tables
-│   │   ├── en.php              # English localization strings
-│   │   └── th.php              # Thai localization strings
-│   ├── lib/                    # Helper libraries & custom functions
-│   │   ├── tcpdf/              # TCPDF core library
-│   │   ├── functions.php       # General helper utilities (UUIDs, event logging)
-│   │   ├── functions-datetime.php # Gregorian (AD) <=> Buddhist (BE) converters
-│   │   ├── functions-lang.php  # Translation dictionary manager
-│   │   └── functions-mysql.php # MySQL PDO wrappers & insert query builder
-│   ├── menu/                   # Menu definition schema
-│   │   └── sidebar.json        # Active sidebar layout configuration
-│   ├── model/                  # Data models & business logic
-│   │   ├── calendar.php        # Calendar event processing
-│   │   ├── guest.php           # Guest actions routing
-│   │   ├── oauth.php           # OAuth2 provider model and actions router
-│   │   ├── user.php            # Authentication, registration & SSO callback logic
-│   │   └── users.json          # Credentials store file (hashed)
-│   └── view/                   # Layout & page templates
-│       ├── oauth/              # OAuth provider templates (authorize, client dashboard)
-│       ├── user/               # User account templates (SSO redirect, provider login, register)
-│       ├── 404.php             # Page not found error layout
-│       ├── calendar.php        # Calendar view page (Schedule-X integration)
-│       ├── layout.php          # Main responsive dashboard layout wrapper
-│       ├── menu-footer.php     # Footer bar wrapper
-│       ├── menu-navbar.php     # Top navbar wrapper
-│       ├── menu-sidebar.php    # Dynamic sidebar component wrapper
-│       └── page-dashboard.php  # Main dashboard view content
-├── databases/                  # Database schema & verification utilities
-│   ├── db4apks_webapp_backup.sql # Database backup template
-│   ├── schema.sql              # Clean MyISAM relational schema (no foreign keys)
-│   └── verify.php              # Database integrity & credential validation script
-└── public_html/                # Web Server Document Root (Publicly Accessible)
-    ├── assets/                 # Frontend libraries, stylesheets, & assets
-    ├── ex-genpdf.php           # TCPDF Thai script PDF generation example
-    ├── index.php               # Front controller & request router
-    ├── logout.php              # Sign-out logic and session destruction
-    ├── menu-manager.php        # Visual Sidebar Menu Manager (Developer tool)
-    ├── oauth-callback-demo.php # Sandbox simulation of a third-party app login flow
-    ├── oauth-token.php         # Secure OAuth2 token exchange endpoint
-    ├── oauth-userinfo.php      # OAuth2 authenticated user profile endpoint
-    └── process.php             # Asynchronous request controller
+app-web/                        # Parent workspace directory
+├── assets/                     # ⭐ Shared frontend assets (used by all APKS projects)
+│   ├── bootstrap-5.3.8/        # Bootstrap CSS & JS
+│   ├── css/                    # Custom layout stylesheets (sidebar, footer)
+│   ├── fonts/                  # Google Sans, FontAwesome (offline)
+│   ├── images/                 # Logos, flags, favicons
+│   ├── js/                     # jQuery, Popper.js, Temporal polyfill
+│   ├── schedule-x-4.6.0/      # Schedule-X calendar (Preact, signals)
+│   ├── select2/                # Select2 searchable dropdowns
+│   └── sweetalert2/            # SweetAlert2 dialog library
+│
+└── apks-users/                 # ← This repository
+    ├── app/                    # Main Application Code (Protected)
+    │   ├── config/             # Application configuration & paths mapping
+    │   │   └── config.php      # Central configuration & libraries loader
+    │   ├── data/               # JSON-based data stores
+    │   │   └── calendar-events.json
+    │   ├── lang/               # Localization translation tables
+    │   │   ├── en.php          # English localization strings
+    │   │   └── th.php          # Thai localization strings
+    │   ├── lib/                # Helper libraries & custom functions
+    │   │   ├── tcpdf/          # TCPDF core library
+    │   │   ├── functions.php   # General helper utilities (UUIDs, event logging)
+    │   │   ├── functions-datetime.php # Gregorian (AD) <=> Buddhist (BE) converters
+    │   │   ├── functions-lang.php     # Translation dictionary manager
+    │   │   └── functions-mysql.php    # MySQL PDO wrappers & insert query builder
+    │   ├── menu/               # Menu definition schema
+    │   │   └── sidebar.json    # Active sidebar layout configuration
+    │   ├── model/              # Data models & business logic
+    │   │   ├── calendar.php    # Calendar event processing
+    │   │   ├── guest.php       # Guest actions routing
+    │   │   ├── oauth.php       # OAuth2 provider model & actions router
+    │   │   ├── user.php        # Authentication, registration & SSO callback logic
+    │   │   └── users.json      # Credentials store file (hashed)
+    │   └── view/               # Layout & page templates
+    │       ├── oauth/          # OAuth provider templates (authorize, client dashboard)
+    │       ├── user/           # User account templates (SSO redirect, provider login, register)
+    │       ├── 404.php         # Page not found error layout
+    │       ├── calendar.php    # Calendar view page (Schedule-X integration)
+    │       ├── layout.php      # Main responsive dashboard layout wrapper
+    │       ├── menu-footer.php # Footer bar wrapper
+    │       ├── menu-navbar.php # Top navbar wrapper
+    │       ├── menu-sidebar.php # Dynamic sidebar component wrapper
+    │       └── page-dashboard.php # Main dashboard view content
+    ├── databases/              # Database schema & verification utilities
+    │   ├── db4apks_webapp_backup.sql # Database backup template
+    │   ├── schema.sql          # Clean MyISAM relational schema (no foreign keys)
+    │   └── verify.php          # Database integrity & credential validation script
+    └── public_html/            # Web Server Document Root (Publicly Accessible)
+        ├── ex-genpdf.php       # TCPDF Thai script PDF generation example
+        ├── index.php           # Front controller & request router
+        ├── logout.php          # Sign-out logic and session destruction
+        ├── menu-manager.php    # Visual Sidebar Menu Manager (Developer tool)
+        ├── oauth-callback-demo.php # Sandbox simulation of a third-party app login flow
+        ├── oauth-token.php     # Secure OAuth2 token exchange endpoint
+        ├── oauth-userinfo.php  # OAuth2 authenticated user profile endpoint
+        └── process.php         # Asynchronous request controller
 ```
+
+> **Note:** The `assets/` folder lives at the `app-web/` parent level and is **shared across all APKS projects** (e.g. `apks-users`, `apks-web`). All HTML/PHP templates reference it via the relative path `../../assets/`.
 
 ---
 
@@ -235,7 +247,8 @@ Navigate to **OAuth Clients** in the sidebar (or visit `http://localhost:8000/in
    ```bash
    php databases/verify.php
    ```
-4. **Configure Web Server**: Point your host's document root to the `public_html/` directory.
+4. **Shared Assets**: Ensure the shared `assets/` folder exists at the parent workspace level (`app-web/assets/`). All views reference assets via `../../assets/`.
+5. **Configure Web Server**: Point your host's document root to the `public_html/` directory.
    - *Alternative (PHP Built-in Server)*: Navigate to the repository root and run:
      ```bash
      php -S localhost:8000 -t public_html
