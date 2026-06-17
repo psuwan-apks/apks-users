@@ -129,6 +129,49 @@
     },
     {
         "type": "collapse",
+        "id": "oauthProvider",
+        "titleTransKey": "NAV_OAUTH",
+        "defaultTitle": "OAuth Provider",
+        "tooltipTransKey": "NAV_OAUTH_TOOLTIP",
+        "defaultTooltip": "Central Authentication Service",
+        "icon": "fa-thin fa-key",
+        "activeRule": {
+            "type": "in_pages",
+            "pages": [
+                "oauth"
+            ]
+        },
+        "children": [
+            {
+                "titleTransKey": "NAV_OAUTH_CLIENTS",
+                "defaultTitle": "Client Applications",
+                "tooltipTransKey": "NAV_OAUTH_CLIENTS_TOOLTIP",
+                "defaultTooltip": "Manage OAuth Clients",
+                "miniIcon": "CA",
+                "url": "./?page=oauth&action=clients",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "oauth",
+                    "action": "clients"
+                }
+            },
+            {
+                "titleTransKey": "NAV_OAUTH_DEMO",
+                "defaultTitle": "Callback Demo",
+                "tooltipTransKey": "NAV_OAUTH_DEMO_TOOLTIP",
+                "defaultTooltip": "Test Client Simulator",
+                "miniIcon": "DM",
+                "url": "./oauth-callback-demo.php",
+                "activeRule": {
+                    "type": "uri_match",
+                    "value": "oauth-callback-demo.php"
+                }
+            }
+        ],
+        "position": "top"
+    },
+    {
+        "type": "collapse",
         "id": "settingsMenu",
         "titleTransKey": "",
         "defaultTitle": "Settings",

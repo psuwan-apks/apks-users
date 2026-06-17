@@ -88,13 +88,66 @@ if (file_exists($menuJsonPath)) {
     <title>Developer Sidebar Menu Manager</title>
     
     <!-- Local and CDN Assets -->
-    <link rel="stylesheet" href="assets/fonts/google-sans/google-sans.css">
-    <link rel="stylesheet" href="assets/fonts/fontawesome/css/all.css">
-    <link href="./assets/bootstrap-5.3.8/css/bootstrap.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/fonts/google-sans/google-sans.css">
+    <link rel="stylesheet" href="../../assets/fonts/fontawesome/css/all.css">
+    <link href="../../assets/bootstrap-5.3.8/css/bootstrap.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/sweetalert2/sweetalert2.min.css" />
+    <link rel="stylesheet" href="../../assets/select2/css/select2.min.css" />
     
     <style>
         * {
             font-family: 'Google Sans', sans-serif;
+        }
+        /* Select2 Custom Styles to match Bootstrap 5 and Google Sans */
+        .select2-container--default .select2-selection--single {
+            height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: .375rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+            display: flex;
+            align-items: center;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            padding-left: 0;
+            padding-right: 0;
+            color: #212529;
+            line-height: inherit;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 100%;
+            right: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow b {
+            border-color: #888 transparent transparent transparent;
+        }
+        .select2-container--default.select2-container--open .select2-selection--single {
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #1abc9c !important;
+            color: #fff !important;
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            padding: 4px 8px;
+            outline: none;
+        }
+        .select2-dropdown {
+            border: 1px solid rgba(0,0,0,.15);
+            border-radius: .375rem;
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.175);
+            z-index: 9999;
         }
         body {
             background-color: #f4f7f9;
@@ -271,7 +324,7 @@ if (file_exists($menuJsonPath)) {
                             <!-- Menu Type -->
                             <div class="col-md-6">
                                 <label for="item-type" class="form-label font-weight-bold text-muted small">Menu Type</label>
-                                <select id="item-type" class="form-select" onchange="toggleFormFields()">
+                                <select id="item-type" class="form-select select2">
                                     <option value="item">Single Link / Page Item</option>
                                     <option value="collapse">Collapsible Folder / Category</option>
                                 </select>
@@ -280,7 +333,7 @@ if (file_exists($menuJsonPath)) {
                             <!-- Position Group -->
                             <div class="col-md-6">
                                 <label for="item-position" class="form-label font-weight-bold text-muted small">Position Group</label>
-                                <select id="item-position" class="form-select">
+                                <select id="item-position" class="form-select select2">
                                     <option value="top">Top Section</option>
                                     <option value="bottom">Bottom Section</option>
                                 </select>
@@ -328,7 +381,7 @@ if (file_exists($menuJsonPath)) {
                             <!-- Rule Type -->
                             <div class="col-md-6">
                                 <label for="rule-type" class="form-label font-weight-bold text-muted small">Rule Type</label>
-                                <select id="rule-type" class="form-select" onchange="toggleRuleFields()">
+                                <select id="rule-type" class="form-select select2">
                                     <option value="none">None (Never auto-highlight)</option>
                                     <option value="exact_page">Exact Page Matches</option>
                                     <option value="in_pages">In List of Pages</option>
@@ -385,9 +438,11 @@ if (file_exists($menuJsonPath)) {
     </div>
 
     <!-- Bootstrap and jQuery CDNs / Local Fallbacks -->
-    <script src="assets/bootstrap-5.3.8/js/jquery-4.0.0.min.js"></script>
-    <script src="assets/bootstrap-5.3.8/js/popper.min.js"></script>
-    <script src="assets/bootstrap-5.3.8/js/bootstrap.min.js"></script>
+    <script src="../../assets/bootstrap-5.3.8/js/jquery-4.0.0.min.js"></script>
+    <script src="../../assets/bootstrap-5.3.8/js/popper.min.js"></script>
+    <script src="../../assets/bootstrap-5.3.8/js/bootstrap.min.js"></script>
+    <script src="../../assets/sweetalert2/sweetalert2.min.js"></script>
+    <script src="../../assets/select2/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
     <script>
@@ -427,25 +482,35 @@ if (file_exists($menuJsonPath)) {
         }
 
         function deleteItem(id) {
-            if (!confirm('Are you sure you want to delete this menu item?')) return;
-            
-            const removeNode = (list) => {
-                const idx = list.findIndex(i => i._id === id);
-                if (idx !== -1) {
-                    list.splice(idx, 1);
-                    return true;
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to delete this menu item?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const removeNode = (list) => {
+                        const idx = list.findIndex(i => i._id === id);
+                        if (idx !== -1) {
+                            list.splice(idx, 1);
+                            return true;
+                        }
+                        for (let item of list) {
+                            if (item.type === 'collapse' && item.children) {
+                                if (removeNode(item.children)) return true;
+                            }
+                        }
+                        return false;
+                    };
+                    
+                    removeNode(menuData);
+                    showToast('Item deleted successfully.');
+                    renderMenuEditor();
                 }
-                for (let item of list) {
-                    if (item.type === 'collapse' && item.children) {
-                        if (removeNode(item.children)) return true;
-                    }
-                }
-                return false;
-            };
-            
-            removeNode(menuData);
-            showToast('Item deleted successfully.');
-            renderMenuEditor();
+            });
         }
 
         function editItem(id) {
@@ -456,8 +521,8 @@ if (file_exists($menuJsonPath)) {
             document.getElementById('edit-item-id').value = id;
             document.getElementById('edit-parent-id').value = parent ? parent._id : '';
 
-            document.getElementById('item-type').value = item.type || 'item';
-            document.getElementById('item-position').value = item.position === 'bottom' ? 'bottom' : 'top';
+            $('#item-type').val(item.type || 'item').trigger('change');
+            $('#item-position').val(item.position === 'bottom' ? 'bottom' : 'top').trigger('change');
             document.getElementById('item-title').value = item.defaultTitle || '';
             document.getElementById('item-transkey').value = item.titleTransKey || '';
             document.getElementById('item-icon').value = item.icon || '';
@@ -465,15 +530,13 @@ if (file_exists($menuJsonPath)) {
             document.getElementById('item-url').value = item.url || '';
 
             const rule = item.activeRule || {};
-            document.getElementById('rule-type').value = rule.type || 'none';
+            $('#rule-type').val(rule.type || 'none').trigger('change');
             document.getElementById('rule-page').value = rule.page || '';
             document.getElementById('rule-pages').value = rule.pages ? rule.pages.join(', ') : '';
             document.getElementById('rule-action').value = rule.action || '';
             document.getElementById('rule-uri').value = rule.value || '';
 
             updateIconPreview();
-            toggleFormFields();
-            toggleRuleFields();
             
             itemModal.show();
         }
@@ -484,14 +547,12 @@ if (file_exists($menuJsonPath)) {
             document.getElementById('edit-item-id').value = '';
             document.getElementById('edit-parent-id').value = '';
             
-            document.getElementById('item-type').value = type;
-            document.getElementById('item-position').value = 'top';
+            $('#item-type').val(type).trigger('change');
+            $('#item-position').val('top').trigger('change');
             document.getElementById('item-icon').value = type === 'collapse' ? 'fa-thin fa-folder' : 'fa-thin fa-link';
-            document.getElementById('rule-type').value = 'none';
+            $('#rule-type').val('none').trigger('change');
 
             updateIconPreview();
-            toggleFormFields();
-            toggleRuleFields();
             
             itemModal.show();
         }
@@ -783,12 +844,22 @@ if (file_exists($menuJsonPath)) {
                         window.location.reload();
                     }, 1000);
                 } else {
-                    alert('Error: ' + data.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Save Failed',
+                        text: data.message,
+                        confirmButtonColor: '#1abc9c'
+                    });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An unexpected error occurred while saving the menu.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred while saving the menu.',
+                    confirmButtonColor: '#1abc9c'
+                });
             })
             .finally(() => {
                 saveBtn.disabled = false;
@@ -798,6 +869,28 @@ if (file_exists($menuJsonPath)) {
 
         document.addEventListener('DOMContentLoaded', () => {
             renderMenuEditor();
+
+            // Make Swal global
+            window.swal = Swal;
+
+            // Initialize Select2 on modal shown
+            const myModalEl = document.getElementById('menuItemModal');
+            myModalEl.addEventListener('shown.bs.modal', function () {
+                $('.select2').each(function() {
+                    $(this).select2({
+                        width: '100%',
+                        dropdownParent: $('#menuItemModal')
+                    });
+                });
+            });
+
+            // Bind change events for select2 compatibility
+            $('#item-type').on('change', function() {
+                toggleFormFields();
+            });
+            $('#rule-type').on('change', function() {
+                toggleRuleFields();
+            });
         });
     </script>
 </body>

@@ -8,7 +8,7 @@ global $translations;
 <div class="logo" id="sidebarToggleLogo">
     <a href="#" class="simple-text logo-mini">
         <div class="logo-image-small">
-            <img class="logo-img" src="./assets/images/logo-apks.svg" style="width: 24px;">
+            <img class="logo-img" src="../../assets/images/logo-apks.svg" style="width: 24px;">
             <i class="logo-icon fa-thin fa-arrow-right-from-bracket" data-bs-toggle="tooltip" data-bs-placement="right" title="<?php echo htmlspecialchars($translations['EXPAND_SIDEBAR'] ?? 'Expand sidebar'); ?>"></i>
         </div>
     </a>

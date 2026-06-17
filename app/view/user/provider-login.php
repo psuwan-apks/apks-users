@@ -1,56 +1,14 @@
 <?php
-// Session
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+// Provider Login View - The actual credential entry form for the OAuth2 provider.
+// Authentication logic is handled by the model (user.php) before this view is rendered.
+// Variables available from the model: $provider_error, $provider_redirect
 
-require_once __DIR__ . '/../../model/user.php';
-
-$error = '';
-$success = '';
-$redirect = $_REQUEST['redirect'] ?? '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirm = $_POST['confirm'] ?? '';
-
-    if ($username === '' || $password === '') {
-        $error = 'Username and password are required.';
-    } elseif ($password !== $confirm) {
-        $error = 'Passwords do not match.';
-    } else {
-        $created = User::createUser($username, $password);
-        if ($created) {
-            log_event('user_register', 'success', 'User registered successfully: ' . $username, $username);
-            // Auto-login after registration
-            $_SESSION['loggedin'] = true;
-            $_SESSION['username'] = $username;
-            $_SESSION['USER'] = ['username' => $username];
-            $success = 'Registration successful. Redirecting...';
-            
-            $redirectUrl = 'index.php';
-            if (!empty($redirect)) {
-                if (!preg_match('/^https?:\/\//i', $redirect)) {
-                    $redirectUrl = $redirect;
-                } else {
-                    $host = parse_url($redirect, PHP_URL_HOST);
-                    if ($host === $_SERVER['HTTP_HOST']) {
-                        $redirectUrl = $redirect;
-                    }
-                }
-            }
-            header('Location: ' . $redirectUrl);
-            exit;
-        } else {
-            log_event('user_register', 'failure', 'Registration failed: Username already exists: ' . $username, $username);
-            $error = 'Username already exists.';
-        }
-    }
-}
+$error = $provider_error ?? '';
+$redirect = $provider_redirect ?? ($_REQUEST['redirect'] ?? '');
 ?>
 
 <style>
-    /* ─── Register Page Styles ─── */
+    /* ─── Login Page Styles ─── */
     .login-section {
         display: flex;
         align-items: center;
@@ -72,12 +30,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     @keyframes cardSlideUp {
-        from { opacity: 0; transform: translateY(24px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(24px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
+    /* Card Header / Brand */
     .login-card-header {
-        background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 2.25rem 2rem 2rem;
         text-align: center;
         position: relative;
@@ -95,6 +60,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         pointer-events: none;
     }
 
+    .login-card-header::after {
+        content: '';
+        position: absolute;
+        bottom: -50%;
+        right: -20%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.06) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
     .login-brand-icon {
         display: inline-flex;
         align-items: center;
@@ -109,6 +85,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         margin-bottom: 1rem;
         position: relative;
         z-index: 1;
+        animation: iconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.2); }
+        50% { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
+    }
+
+    .login-brand-icon svg {
+        width: 32px;
+        height: 32px;
     }
 
     .login-card-header h2 {
@@ -128,10 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         z-index: 1;
     }
 
+    /* Card Body */
     .login-card-body {
         padding: 2rem 2rem 1.75rem;
     }
 
+    /* Error Alert */
     .login-error {
         display: flex;
         align-items: center;
@@ -147,28 +136,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         animation: shakeError 0.4s ease-in-out;
     }
 
-    .login-success {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        border-radius: 12px;
-        padding: 0.75rem 1rem;
-        margin-bottom: 1.25rem;
-        color: #16a34a;
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
-
     @keyframes shakeError {
         0%, 100% { transform: translateX(0); }
         20%, 60% { transform: translateX(-6px); }
         40%, 80% { transform: translateX(6px); }
     }
 
-    .login-error i, .login-success i { font-size: 1rem; flex-shrink: 0; }
+    .login-error i {
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
 
+    /* Form Groups */
     .login-form-group {
         margin-bottom: 1.25rem;
     }
@@ -217,13 +196,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .login-form-group input:focus {
-        border-color: #1abc9c;
+        border-color: #667eea;
         background: #fff;
-        box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.12);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
     }
 
+    .login-form-group input:focus + i,
     .login-form-group .input-wrapper:focus-within i {
-        color: #1abc9c;
+        color: #667eea;
     }
 
     .login-form-group input::placeholder {
@@ -231,12 +211,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         font-weight: 400;
     }
 
+    /* Submit Button */
     .login-submit-btn {
         width: 100%;
         padding: 0.85rem 1.5rem;
         border: none;
         border-radius: 12px;
-        background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: #fff;
         font-size: 1rem;
         font-weight: 600;
@@ -262,19 +243,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .login-submit-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px -5px rgba(26, 188, 156, 0.4);
+        box-shadow: 0 8px 25px -5px rgba(102, 126, 234, 0.4);
     }
 
-    .login-submit-btn:hover::before { left: 100%; }
-    .login-submit-btn:active { transform: translateY(0); }
+    .login-submit-btn:hover::before {
+        left: 100%;
+    }
 
+    .login-submit-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 12px -3px rgba(102, 126, 234, 0.35);
+    }
+
+    /* Card Footer */
     .login-card-footer {
         text-align: center;
         padding: 0 2rem 1.75rem;
     }
 
     .login-card-footer a {
-        color: #1abc9c;
+        color: #667eea;
         text-decoration: none;
         font-size: 0.875rem;
         font-weight: 500;
@@ -284,8 +272,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         gap: 0.35rem;
     }
 
-    .login-card-footer a:hover { color: #16a085; }
+    .login-card-footer a:hover {
+        color: #764ba2;
+    }
 
+    /* Divider */
     .login-divider {
         display: flex;
         align-items: center;
@@ -306,11 +297,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         background: #e2e8f0;
     }
 
+    /* Responsive */
     @media (max-width: 480px) {
-        .login-card { border-radius: 16px; margin: 0 0.25rem; }
-        .login-card-header { padding: 1.75rem 1.5rem 1.5rem; }
-        .login-card-body { padding: 1.5rem 1.5rem 1.25rem; }
-        .login-card-footer { padding: 0 1.5rem 1.5rem; }
+        .login-card {
+            border-radius: 16px;
+            margin: 0 0.25rem;
+        }
+        .login-card-header {
+            padding: 1.75rem 1.5rem 1.5rem;
+        }
+        .login-card-body {
+            padding: 1.5rem 1.5rem 1.25rem;
+        }
+        .login-card-footer {
+            padding: 0 1.5rem 1.5rem;
+        }
     }
 </style>
 
@@ -319,15 +320,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Header -->
         <div class="login-card-header">
             <div class="login-brand-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="8.5" cy="7" r="4"></circle>
-                    <line x1="20" y1="8" x2="20" y2="14"></line>
-                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
                 </svg>
             </div>
-            <h2>Create Account</h2>
-            <p>Join APKS to get started</p>
+            <h2>APKS Authentication</h2>
+            <p>Sign in with your credentials to continue</p>
         </div>
 
         <!-- Body -->
@@ -337,49 +337,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fa-solid fa-circle-exclamation"></i>
                     <span><?php echo htmlspecialchars($error); ?></span>
                 </div>
-            <?php elseif ($success): ?>
-                <div class="login-success">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <span><?php echo htmlspecialchars($success); ?></span>
-                </div>
             <?php endif; ?>
 
-            <form method="post" action="" id="registerForm">
+            <form method="post" action="" id="loginForm">
                 <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
 
                 <div class="login-form-group">
-                    <label for="reg-username">Username</label>
+                    <label for="provider-username">Username</label>
                     <div class="input-wrapper">
-                        <input type="text" name="username" id="reg-username"
-                               required autofocus autocomplete="username"
-                               placeholder="Choose a username">
+                        <input type="text" name="username" id="provider-username"
+                               required autocomplete="username" autofocus
+                               placeholder="Enter your username">
                         <i class="fa-thin fa-user"></i>
                     </div>
                 </div>
 
                 <div class="login-form-group">
-                    <label for="reg-password">Password</label>
+                    <label for="provider-password">Password</label>
                     <div class="input-wrapper">
-                        <input type="password" name="password" id="reg-password"
-                               required autocomplete="new-password"
-                               placeholder="Create a password">
+                        <input type="password" name="password" id="provider-password"
+                               required autocomplete="current-password"
+                               placeholder="Enter your password">
                         <i class="fa-thin fa-lock"></i>
                     </div>
                 </div>
 
-                <div class="login-form-group">
-                    <label for="reg-confirm">Confirm Password</label>
-                    <div class="input-wrapper">
-                        <input type="password" name="confirm" id="reg-confirm"
-                               required autocomplete="new-password"
-                               placeholder="Confirm your password">
-                        <i class="fa-thin fa-shield-check"></i>
-                    </div>
-                </div>
-
-                <button type="submit" class="login-submit-btn" id="registerSubmitBtn">
-                    <i class="fa-thin fa-user-plus" style="margin-right: 0.4rem;"></i>
-                    Create Account
+                <button type="submit" class="login-submit-btn" id="loginSubmitBtn">
+                    <i class="fa-thin fa-right-to-bracket" style="margin-right: 0.4rem;"></i>
+                    Sign In
                 </button>
             </form>
 
@@ -388,9 +373,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Footer -->
         <div class="login-card-footer">
-            <a href="./index.php?page=user&action=user-login" id="loginLink">
-                <i class="fa-thin fa-right-to-bracket"></i>
-                Already have an account? Sign In
+            <a href="./index.php?page=user&action=user-register<?php echo !empty($redirect) ? '&redirect=' . urlencode($redirect) : ''; ?>" id="registerLink">
+                <i class="fa-thin fa-user-plus"></i>
+                Don't have an account? Register
             </a>
         </div>
     </div>

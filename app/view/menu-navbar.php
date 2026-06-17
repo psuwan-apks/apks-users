@@ -55,8 +55,8 @@ $nextLanguage = $currentLanguage === 'en' ? 'th' : 'en'; // Determine the next l
         <li class="nav-item" id="language-toggle" style="cursor: pointer; display: inline-block; padding-top: 0.5rem; padding-right: 1.25rem">
           <img
             src="<?php echo $currentLanguage === 'en'
-                    ? './assets/images/flag-uk.png'
-                    : './assets/images/flag-th.png'; ?>"
+                    ? '../../assets/images/flag-uk.png'
+                    : '../../assets/images/flag-th.png'; ?>"
             alt="<?php echo $currentLanguage === 'en' ? 'English' : 'Thai'; ?>"
             title="Switch to <?php echo $nextLanguage === 'en' ? 'English' : 'Thai'; ?>"
             id="language-flag"

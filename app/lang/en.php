@@ -35,4 +35,12 @@ return [
     'NAV_LOGOUT_TOOLTIP' => 'Sign Out from System',
     'EXPAND_SIDEBAR' => 'Expand sidebar',
     'CLOSE_SIDEBAR' => 'Close sidebar',
+
+    // OAuth Provider
+    'NAV_OAUTH' => 'OAuth Provider',
+    'NAV_OAUTH_TOOLTIP' => 'Central Authentication Service',
+    'NAV_OAUTH_CLIENTS' => 'Client Applications',
+    'NAV_OAUTH_CLIENTS_TOOLTIP' => 'Manage OAuth Clients',
+    'NAV_OAUTH_DEMO' => 'Callback Demo',
+    'NAV_OAUTH_DEMO_TOOLTIP' => 'Test Client Simulator',
 ];

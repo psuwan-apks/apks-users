@@ -10,7 +10,7 @@ APKS is a modern, lightweight, custom-built PHP web application leveraging a hom
 - **Database Wrapper**: PDO-based MySQL utility handler
 - **Frontend Framework**: Bootstrap 5.3.8 & Vanilla CSS
 - **Icons**: FontAwesome (Pro/Thin variant icons)
-- **Interactive Scripts**: jQuery 4.0.0, Popper.js, and SortableJS
+- **Interactive Scripts & Dialogs**: jQuery 4.0.0, Popper.js, SortableJS, SweetAlert2 v11 (offline custom dialogs/confirms), and Select2 v4.1.0-rc.0 (offline styled searchable select dropdowns)
 - **Calendar Engine**: Schedule-X Calendar v4.6.0 (Preact & core signals bundle)
 - **PDF Generation**: TCPDF with pre-compiled Thai font mappings (THSarabunPSK)
 
@@ -39,10 +39,12 @@ apks-web/
 │   ├── model/                  # Data models & business logic
 │   │   ├── calendar.php        # Calendar event processing
 │   │   ├── guest.php           # Guest actions routing
-│   │   ├── user.php            # Authentication & registration logic
+│   │   ├── oauth.php           # OAuth2 provider model and actions router
+│   │   ├── user.php            # Authentication, registration & SSO callback logic
 │   │   └── users.json          # Credentials store file (hashed)
 │   └── view/                   # Layout & page templates
-│       ├── user/               # User account templates (login/register)
+│       ├── oauth/              # OAuth provider templates (authorize, client dashboard)
+│       ├── user/               # User account templates (SSO redirect, provider login, register)
 │       ├── 404.php             # Page not found error layout
 │       ├── calendar.php        # Calendar view page (Schedule-X integration)
 │       ├── layout.php          # Main responsive dashboard layout wrapper
@@ -56,6 +58,9 @@ apks-web/
     ├── index.php               # Front controller & request router
     ├── logout.php              # Sign-out logic and session destruction
     ├── menu-manager.php        # Visual Sidebar Menu Manager (Developer tool)
+    ├── oauth-callback-demo.php # Sandbox simulation of a third-party app login flow
+    ├── oauth-token.php         # Secure OAuth2 token exchange endpoint
+    ├── oauth-userinfo.php      # OAuth2 authenticated user profile endpoint
     └── process.php             # Asynchronous request controller
 ```
 
@@ -86,19 +91,101 @@ Dual-language support (English and Thai) is toggled globally.
 - Full UI translation is mapped for Thai localization (`th-TH`).
 - Built-in theme parameters configure it to run in **Dark Mode** matching custom capsule-shaped button styles.
 
-### 5. Session Authentication
-- Login and registration scripts securely validate input and save accounts locally inside `app/model/users.json`.
-- Passwords are securely encrypted using standard PHP `password_hash` with `PASSWORD_DEFAULT` and checked using `password_verify`.
+### 5. Session Authentication & Single Sign-On (SSO)
+- The application uses a centralized **OAuth2 Single Sign-On (SSO)** architecture for authentication.
+- Access is initiated at `user-login.php` (SSO Initiator), which redirects unauthenticated users to the OAuth authorize endpoint.
+- Real credentials entry is handled on a separate, dedicated `provider-login.php` form.
+- Direct local method calls are used for the token exchange back-channel in `oauth-callback` to prevent deadlocks when running on single-threaded environments (e.g. PHP built-in server).
+- Accounts are verified against hashed user records stored locally inside `app/model/users.json`.
 
-### 6. Thai PDF Generation
+### 6. OAuth2 Identity Provider (IdP)
+The system acts as a standard-compliant stateless OAuth2 Identity Provider (IdP) serving internal first-party and external third-party client applications.
+- **First-Party Client Auto-Approval**: The host application itself runs as a registered first-party client (`apks-users-client`). It bypasses the consent prompt and logs users in seamlessly.
+- **Third-Party Client Consent Flow**: Standard client applications (such as the sandbox simulator) are presented with a consent screen prompting the user to manually Approve or Deny access.
+- **End-user Management**: Authorized developers can manage client apps directly on the OAuth Client dashboard.
+
+### 7. Thai PDF Generation
 - Integrates TCPDF with the Thai National font **THSarabunPSK** (regular and bold).
 - Uses native UTF-8 Unicode font handling directly without requiring CP874 encodings, displaying Thai characters, vowel marks, and tone marks with correct alignment.
 - An example implementation is provided in `public_html/ex-genpdf.php`.
 
-### 7. Core Helpers
+### 8. Core Helpers
 - **`apksDATEBE` (`app/lib/functions-datetime.php`)**: Translates date strings between Western Gregorian calendar (AD) and Thai Buddhist Era calendar (BE). Formats long and short Thai month names.
 - **`db_connected` (`app/lib/functions-mysql.php`)**: Establishes PDO database connectors using strict exception modes and real prepared statements. Includes helper queries like `insertRecord`.
 - **General Utilities**: Includes random token generation, custom RFC-4122 v4 UUID binary converters, and JSON-formatted file event logging.
+
+---
+
+## 🔑 Using the OAuth2 Provider
+
+To connect an application (such as an internal tool or dashboard) to this OAuth2 provider, use the following integration details:
+
+### 1. Register a Client
+Navigate to **OAuth Clients** in the sidebar (or visit `http://localhost:8000/index.php?page=oauth&action=clients`) and create a client. You will receive:
+- **Client ID**: e.g., `client_abcd1234efgh`
+- **Client Secret**: e.g., `secret_5678ijkl...`
+
+### 2. Authorization Code Flow
+
+1. **Redirect User to Authorize**:
+   Redirect the browser to:
+   ```text
+   GET http://localhost:8000/index.php?page=oauth&action=authorize
+     &client_id={YOUR_CLIENT_ID}
+     &redirect_uri={YOUR_REGISTERED_REDIRECT_URI}
+     &response_type=code
+     &scope=profile
+     &state={RANDOM_CSRF_STATE}
+   ```
+
+2. **Handle the Callback**:
+   The authorization server redirects the browser back to your `redirect_uri` with an authorization code:
+   ```text
+   GET {YOUR_REDIRECT_URI}?code={AUTH_CODE}&state={STATE}
+   ```
+
+3. **Exchange Code for Access Token**:
+   From your application backend, make a POST request:
+   ```text
+   POST http://localhost:8000/oauth-token.php
+   
+   Headers:
+     Content-Type: application/x-www-form-urlencoded
+     Authorization: Basic {BASE64_ENCODED_CLIENT_ID:CLIENT_SECRET} (or send client_id and client_secret in POST body)
+   
+   POST Body Parameters:
+     grant_type=authorization_code
+     code={AUTH_CODE}
+     redirect_uri={YOUR_REDIRECT_URI}
+     client_id={YOUR_CLIENT_ID}
+     client_secret={YOUR_CLIENT_SECRET}
+   ```
+   **Response**:
+   ```json
+   {
+     "access_token": "token_abc123...",
+     "token_type": "Bearer",
+     "expires_in": 3600,
+     "scope": "profile"
+   }
+   ```
+
+4. **Retrieve User Profile Info**:
+   Request the profile endpoints:
+   ```text
+   GET http://localhost:8000/oauth-userinfo.php
+   
+   Headers:
+     Authorization: Bearer {ACCESS_TOKEN}
+   ```
+   **Response**:
+   ```json
+   {
+     "sub": "admin",
+     "username": "admin",
+     "scope": "profile"
+   }
+   ```
 
 ---
 
@@ -111,6 +198,7 @@ Dual-language support (English and Thai) is toggled globally.
   - `app/logs/` (for logging events)
   - `app/menu/` (for updating sidebar configurations)
   - `app/model/` (for seeding and saving local users)
+  - `app/data/` (for storing OAuth clients, tokens, and authorization codes)
 
 ### Setup Steps
 1. **Configure Web Server**: Point your host's document root to the `public_html/` directory.
@@ -129,6 +217,27 @@ Dual-language support (English and Thai) is toggled globally.
    ```
 
 ### Access Points
-- **Web App**: `http://localhost:8000/`
-- **Sidebar Menu Manager (Developer tool)**: `http://localhost:8000/menu-manager.php`
+- **Web App / Dashboard**: `http://localhost:8000/`
+- **SSO Login Initiator**: `http://localhost:8000/index.php?page=user&action=user-login`
+- **Visual Sidebar Menu Manager**: `http://localhost:8000/menu-manager.php`
+- **OAuth Clients Dashboard**: `http://localhost:8000/index.php?page=oauth&action=clients`
+- **OAuth Callback Demo Simulator**: `http://localhost:8000/oauth-callback-demo.php`
 - **PDF Generation Example**: `http://localhost:8000/ex-genpdf.php`
+
+---
+
+## 🔮 Next Development Steps
+
+To expand the capabilities of the APKS platform, consider the following next development milestones:
+
+1. **Advanced User & Account Management Console**:
+   - Build a visual administrative dashboard to manage user accounts, assign user roles, toggle statuses, and audit security events.
+2. **Enhanced Client Management Features**:
+   - Introduce toggles to configure/revoke client first-party status, manage supported redirect URIs, configure customizable client token lifetimes, and deactivate/ban accounts.
+3. **Menu Manager Advanced Features**:
+   - Implement import/export functionality for `sidebar.json` with visual JSON schema validation.
+   - Add localization helper tools within the menu editor to automatically map translation keys directly to `app/lang/en.php` and `app/lang/th.php`.
+4. **OAuth Access Token Revocation (RFC 7009)**:
+   - Expose the `/oauth-revoke.php` endpoint to allow third-party applications to cleanly invalidate active access tokens.
+5. **Database Maintenance & Log Viewer UI**:
+   - Provide a developers-only system panel to view raw MySQL connections, check table statuses, inspect execution logs, and monitor execution bottlenecks.

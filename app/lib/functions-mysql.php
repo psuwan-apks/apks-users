@@ -3,9 +3,9 @@
 const DB_HOST = 'localhost';
 const DB_USER = 'root';
 const DB_PASS = '@dmin1234S';
-const DB_NAME = 'db_name';
+const DB_NAME = 'db4apks_webapp';
 const DB_CHAR = 'utf8mb4';
-const DB_PORT = 8889;
+const DB_PORT = 3306;
 
 /**
  * Establish a PDO database connection.

@@ -9,7 +9,7 @@ $lang = $_SESSION['LANGUAGE'] ?? 'th';
 $calendarLocale = ($lang === 'th') ? 'th-TH' : 'en-US';
 ?>
 
-<link rel="stylesheet" href="./assets/schedule-x-4.6.0/css/schedule-x.css">
+<link rel="stylesheet" href="../../assets/schedule-x-4.6.0/css/schedule-x.css">
 
 <style>
     .calendar-wrapper {
@@ -112,13 +112,13 @@ $calendarLocale = ($lang === 'th') ? 'th-TH' : 'en-US';
 
 <!-- Schedule-X dependencies (local) -->
 <!-- Dependencies (exact order from official docs) -->
-<script src="./assets/schedule-x-4.6.0/js/preact.min.js"></script>
-<script src="./assets/schedule-x-4.6.0/js/hooks.umd.js"></script>
-<script src="./assets/schedule-x-4.6.0/js/signals-core.min.js"></script>
-<script src="./assets/schedule-x-4.6.0/js/signals.min.js"></script>
-<script src="./assets/schedule-x-4.6.0/js/jsxRuntime.umd.js"></script>
-<script src="./assets/schedule-x-4.6.0/js/compat.umd.js"></script>
-<script src="./assets/schedule-x-4.6.0/js/core.umd.js"></script>
+<script src="../../assets/schedule-x-4.6.0/js/preact.min.js"></script>
+<script src="../../assets/schedule-x-4.6.0/js/hooks.umd.js"></script>
+<script src="../../assets/schedule-x-4.6.0/js/signals-core.min.js"></script>
+<script src="../../assets/schedule-x-4.6.0/js/signals.min.js"></script>
+<script src="../../assets/schedule-x-4.6.0/js/jsxRuntime.umd.js"></script>
+<script src="../../assets/schedule-x-4.6.0/js/compat.umd.js"></script>
+<script src="../../assets/schedule-x-4.6.0/js/core.umd.js"></script>
 
 <script type="module">
     const {

@@ -35,4 +35,12 @@ return [
     'NAV_LOGOUT_TOOLTIP' => 'ออกจากระบบ',
     'EXPAND_SIDEBAR' => 'ขยายแถบข้าง',
     'CLOSE_SIDEBAR' => 'ปิดแถบข้าง',
+
+    // OAuth Provider
+    'NAV_OAUTH' => 'ผู้ให้บริการ OAuth',
+    'NAV_OAUTH_TOOLTIP' => 'ระบบจัดการการยืนยันตัวตนส่วนกลาง (SSO)',
+    'NAV_OAUTH_CLIENTS' => 'แอปพลิเคชันไคลเอนต์',
+    'NAV_OAUTH_CLIENTS_TOOLTIP' => 'จัดการข้อมูลแอปพลิเคชันเชื่อมต่อ',
+    'NAV_OAUTH_DEMO' => 'ตัวอย่างการเชื่อมต่อ',
+    'NAV_OAUTH_DEMO_TOOLTIP' => 'ตัวจำลองการเชื่อมต่อไคลเอนต์',
 ];
