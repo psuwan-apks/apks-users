@@ -1,0 +1,46 @@
+<?php
+
+return [
+    'APP_NAME' => 'ชื่อโปรแกรม',
+    'CUSTOMERS_TITLE' => 'ลูกค้า',
+    'NAV_DASHBOARD' => 'แดชบอร์ด',
+    'NAV_ADMIN' => 'ผู้ดูแลระบบ',
+    'NAV_REQUEST_VIEWS' => 'รายการคำขอ',
+    'NAV_REQUEST_EQUIPMENT' => 'แบบคำขอสอบเทียบ',
+    'NAV_CUSTOMER_VIEW' => 'ข้อมูลลูกค้า',
+    'NAV_CUSTOMER_ADD' => 'เพิ่มลูกค้า',
+    'NAV_USERS_VIEW' => 'ข้อมูลผู้ใช้',
+    'NAV_USERS_REGISTER' => 'ลงทะเบียนผู้ใช้',
+    'NAV_LABS_VIEW' => 'ข้อมูลห้องปฏิบัติการ',
+    'NAV_ROLES_VIEW' => 'ข้อมูลบทบาท',
+    'NAV_ROLE_ADD' => 'เพิ่มบทบาท',
+    'USERS_TITLE' => 'ผู้ใช้',
+    
+    // Tooltips
+    'NAV_DASHBOARD_TOOLTIP' => 'ภาพรวมแดชบอร์ด',
+    'NAV_ADMIN_TOOLTIP' => 'แผงควบคุมผู้ดูแลระบบ',
+    'NAV_ROLES_VIEW_TOOLTIP' => 'ดูบทบาทผู้ใช้ระบบ',
+    'NAV_CUSTOMER_VIEW_TOOLTIP' => 'ดูข้อมูลลูกค้าทั้งหมด',
+    'NAV_ROLE_ADD_TOOLTIP' => 'เพิ่มบทบาทหน้าที่ใหม่',
+    'NAV_CUSTOMER_ADD_TOOLTIP' => 'เพิ่มข้อมูลลูกค้าใหม่',
+    'NAV_USERS_VIEW_TOOLTIP' => 'ดูข้อมูลผู้ใช้ระบบทั้งหมด',
+    'NAV_USERS_REGISTER_TOOLTIP' => 'ลงทะเบียนผู้ใช้ใหม่',
+    'NAV_CALENDAR_TOOLTIP' => 'ปฏิทินและกิจกรรม',
+    'NAV_SETTINGS_TOOLTIP' => 'ตั้งค่าระบบ',
+    'NAV_GENERAL_SETTINGS_TOOLTIP' => 'การตั้งค่าทั่วไปของระบบ',
+    'NAV_SYSTEM_LOGS_TOOLTIP' => 'ดูประวัติการบันทึกระบบ',
+    'NAV_USER_TOOLTIP' => 'บัญชีผู้ใช้งาน',
+    'NAV_LOGIN_TOOLTIP' => 'เข้าสู่ระบบ',
+    'NAV_REGISTER_TOOLTIP' => 'ลงทะเบียนบัญชีใหม่',
+    'NAV_LOGOUT_TOOLTIP' => 'ออกจากระบบ',
+    'EXPAND_SIDEBAR' => 'ขยายแถบข้าง',
+    'CLOSE_SIDEBAR' => 'ปิดแถบข้าง',
+
+    // OAuth Provider
+    'NAV_OAUTH' => 'ผู้ให้บริการ OAuth',
+    'NAV_OAUTH_TOOLTIP' => 'ระบบจัดการการยืนยันตัวตนส่วนกลาง (SSO)',
+    'NAV_OAUTH_CLIENTS' => 'แอปพลิเคชันไคลเอนต์',
+    'NAV_OAUTH_CLIENTS_TOOLTIP' => 'จัดการข้อมูลแอปพลิเคชันเชื่อมต่อ',
+    'NAV_OAUTH_DEMO' => 'ตัวอย่างการเชื่อมต่อ',
+    'NAV_OAUTH_DEMO_TOOLTIP' => 'ตัวจำลองการเชื่อมต่อไคลเอนต์',
+];

@@ -1,0 +1,217 @@
+[
+    {
+        "type": "item",
+        "titleTransKey": "NAV_DASHBOARD",
+        "defaultTitle": "Dashboard",
+        "tooltipTransKey": "NAV_DASHBOARD_TOOLTIP",
+        "defaultTooltip": "Dashboard Overview",
+        "icon": "fa-sharp fa-thin fa-grid",
+        "url": "./",
+        "activeRule": {
+            "type": "exact_page",
+            "page": "guest"
+        },
+        "position": "top",
+        "miniIcon": ""
+    },
+    {
+        "type": "collapse",
+        "id": "pagesExamples",
+        "titleTransKey": "NAV_ADMIN",
+        "defaultTitle": "Admin",
+        "tooltipTransKey": "NAV_ADMIN_TOOLTIP",
+        "defaultTooltip": "Admin Panel",
+        "icon": "fa-thin fa-users-gear",
+        "activeRule": {
+            "type": "in_pages",
+            "pages": [
+                "admin",
+                "customers",
+                "users"
+            ]
+        },
+        "children": [
+            {
+                "titleTransKey": "NAV_ROLES_VIEW",
+                "defaultTitle": "Roles View",
+                "tooltipTransKey": "NAV_ROLES_VIEW_TOOLTIP",
+                "defaultTooltip": "View Roles",
+                "miniIcon": "RL",
+                "url": "./?page=admin&action=roles-view",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "admin",
+                    "action": "roles-view"
+                }
+            },
+            {
+                "titleTransKey": "NAV_CUSTOMER_VIEW",
+                "defaultTitle": "Customer View",
+                "tooltipTransKey": "NAV_CUSTOMER_VIEW_TOOLTIP",
+                "defaultTooltip": "View Customers",
+                "miniIcon": "CV",
+                "url": "./?page=customers&action=customers-view",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "customers",
+                    "action": "customers-view"
+                }
+            },
+            {
+                "titleTransKey": "NAV_ROLE_ADD",
+                "defaultTitle": "Add Role",
+                "tooltipTransKey": "NAV_ROLE_ADD_TOOLTIP",
+                "defaultTooltip": "Add Role",
+                "miniIcon": "AR",
+                "url": "./?page=admin&action=request-role",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "admin",
+                    "action": "request-role"
+                }
+            },
+            {
+                "titleTransKey": "NAV_CUSTOMER_ADD",
+                "defaultTitle": "Customer Add",
+                "tooltipTransKey": "NAV_CUSTOMER_ADD_TOOLTIP",
+                "defaultTooltip": "Customer Add",
+                "miniIcon": "CA",
+                "url": "./?page=customers&action=customer-add",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "customers",
+                    "action": "customer-add"
+                }
+            },
+            {
+                "titleTransKey": "NAV_USERS_VIEW",
+                "defaultTitle": "Users View",
+                "tooltipTransKey": "NAV_USERS_VIEW_TOOLTIP",
+                "defaultTooltip": "Users View",
+                "miniIcon": "UV",
+                "url": "./?page=users&action=users-view",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "users",
+                    "action": "users-view"
+                }
+            },
+            {
+                "titleTransKey": "NAV_USERS_REGISTER",
+                "defaultTitle": "Register Users",
+                "tooltipTransKey": "NAV_USERS_REGISTER_TOOLTIP",
+                "defaultTooltip": "Register Users",
+                "miniIcon": "UR",
+                "url": "./register.php",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "register",
+                    "action": "register"
+                }
+            }
+        ],
+        "position": "top"
+    },
+    {
+        "type": "item",
+        "titleTransKey": "",
+        "defaultTitle": "Calendar",
+        "tooltipTransKey": "NAV_CALENDAR_TOOLTIP",
+        "defaultTooltip": "Calendar Events",
+        "icon": "fa-thin fa-calendar-days",
+        "url": "?page=calendar",
+        "position": "top",
+        "activeRule": {
+            "type": "uri_match",
+            "value": "examples/calendar.php"
+        },
+        "miniIcon": ""
+    },
+    {
+        "type": "collapse",
+        "id": "oauthProvider",
+        "titleTransKey": "NAV_OAUTH",
+        "defaultTitle": "OAuth Provider",
+        "tooltipTransKey": "NAV_OAUTH_TOOLTIP",
+        "defaultTooltip": "Central Authentication Service",
+        "icon": "fa-thin fa-key",
+        "activeRule": {
+            "type": "in_pages",
+            "pages": [
+                "oauth"
+            ]
+        },
+        "children": [
+            {
+                "titleTransKey": "NAV_OAUTH_CLIENTS",
+                "defaultTitle": "Client Applications",
+                "tooltipTransKey": "NAV_OAUTH_CLIENTS_TOOLTIP",
+                "defaultTooltip": "Manage OAuth Clients",
+                "miniIcon": "CA",
+                "url": "./?page=oauth&action=clients",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "oauth",
+                    "action": "clients"
+                }
+            },
+            {
+                "titleTransKey": "NAV_OAUTH_DEMO",
+                "defaultTitle": "Callback Demo",
+                "tooltipTransKey": "NAV_OAUTH_DEMO_TOOLTIP",
+                "defaultTooltip": "Test Client Simulator",
+                "miniIcon": "DM",
+                "url": "./oauth-callback-demo.php",
+                "activeRule": {
+                    "type": "uri_match",
+                    "value": "oauth-callback-demo.php"
+                }
+            }
+        ],
+        "position": "top"
+    },
+    {
+        "type": "collapse",
+        "id": "settingsMenu",
+        "titleTransKey": "",
+        "defaultTitle": "Settings",
+        "tooltipTransKey": "NAV_SETTINGS_TOOLTIP",
+        "defaultTooltip": "System Settings",
+        "icon": "fa-sharp fa-thin fa-screwdriver-wrench",
+        "position": "bottom",
+        "activeRule": {
+            "type": "in_pages",
+            "pages": [
+                "settings"
+            ]
+        },
+        "children": [
+            {
+                "titleTransKey": "",
+                "defaultTitle": "General Settings",
+                "tooltipTransKey": "NAV_GENERAL_SETTINGS_TOOLTIP",
+                "defaultTooltip": "General Settings",
+                "miniIcon": "GS",
+                "url": "./?page=settings&action=general",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "settings",
+                    "action": "general"
+                }
+            },
+            {
+                "titleTransKey": "",
+                "defaultTitle": "System Logs",
+                "tooltipTransKey": "NAV_SYSTEM_LOGS_TOOLTIP",
+                "defaultTooltip": "System Logs",
+                "miniIcon": "SL",
+                "url": "./?page=settings&action=logs",
+                "activeRule": {
+                    "type": "exact_page_action",
+                    "page": "settings",
+                    "action": "logs"
+                }
+            }
+        ]
+    }
+]

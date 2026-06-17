@@ -1,0 +1,46 @@
+/* Footer Layout - Sticky footer pattern
+   Footer stays at the bottom when content is short,
+   flows naturally after content when content is tall */
+
+.main-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.main-panel > .content {
+    flex: 1;
+}
+
+.main-panel > .footer {
+    flex-shrink: 0;
+}
+
+/* Footer content layout: nav left, credits right */
+.footer .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: nowrap;
+}
+
+.footer .footer-nav {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+.footer .footer-nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 1rem;
+}
+
+.footer .credits {
+    flex: 0 0 auto;
+    width: auto;
+    margin-left: auto;
+    text-align: right;
+    white-space: nowrap;
+}

@@ -1,0 +1,46 @@
+<?php
+
+return [
+    'APP_NAME' => 'APPLICATION NAME',
+    'CUSTOMERS_TITLE' => 'Customers',
+    'NAV_DASHBOARD' => 'Dashboard',
+    'NAV_ADMIN' => 'Admin',
+    'NAV_REQUEST_VIEWS' => 'Request Views',
+    'NAV_REQUEST_EQUIPMENT' => 'Request Equipment',
+    'NAV_CUSTOMER_VIEW' => 'Customer View',
+    'NAV_CUSTOMER_ADD' => 'Customer Add',
+    'NAV_USERS_VIEW' => 'Users View',
+    'NAV_USERS_REGISTER' => 'Users Register',
+    'NAV_LABS_VIEW' => 'Labs View',
+    'NAV_ROLES_VIEW' => 'Roles View',
+    'NAV_ROLE_ADD' => 'Add Role',
+    'USERS_TITLE' => 'Users',
+    
+    // Tooltips
+    'NAV_DASHBOARD_TOOLTIP' => 'Dashboard Overview',
+    'NAV_ADMIN_TOOLTIP' => 'Admin Control Panel',
+    'NAV_ROLES_VIEW_TOOLTIP' => 'View User Roles',
+    'NAV_CUSTOMER_VIEW_TOOLTIP' => 'View All Customers',
+    'NAV_ROLE_ADD_TOOLTIP' => 'Add New User Role',
+    'NAV_CUSTOMER_ADD_TOOLTIP' => 'Add New Customer',
+    'NAV_USERS_VIEW_TOOLTIP' => 'View All System Users',
+    'NAV_USERS_REGISTER_TOOLTIP' => 'Register New User',
+    'NAV_CALENDAR_TOOLTIP' => 'Calendar & Events',
+    'NAV_SETTINGS_TOOLTIP' => 'System Settings',
+    'NAV_GENERAL_SETTINGS_TOOLTIP' => 'General System Settings',
+    'NAV_SYSTEM_LOGS_TOOLTIP' => 'View System Logs',
+    'NAV_USER_TOOLTIP' => 'User Account Profile',
+    'NAV_LOGIN_TOOLTIP' => 'Sign In to System',
+    'NAV_REGISTER_TOOLTIP' => 'Register New Account',
+    'NAV_LOGOUT_TOOLTIP' => 'Sign Out from System',
+    'EXPAND_SIDEBAR' => 'Expand sidebar',
+    'CLOSE_SIDEBAR' => 'Close sidebar',
+
+    // OAuth Provider
+    'NAV_OAUTH' => 'OAuth Provider',
+    'NAV_OAUTH_TOOLTIP' => 'Central Authentication Service',
+    'NAV_OAUTH_CLIENTS' => 'Client Applications',
+    'NAV_OAUTH_CLIENTS_TOOLTIP' => 'Manage OAuth Clients',
+    'NAV_OAUTH_DEMO' => 'Callback Demo',
+    'NAV_OAUTH_DEMO_TOOLTIP' => 'Test Client Simulator',
+];
