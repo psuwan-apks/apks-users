@@ -24,6 +24,6 @@ if (ini_get("session.use_cookies")) {
 // 4. Destroy the session on the server
 session_destroy();
 
-// 5. Redirect the user to the login or home page
-// header("Location: login.php");
+// 5. Redirect the user to the dashboard page
+header("Location: ./index.php");
 exit;

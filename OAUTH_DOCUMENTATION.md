@@ -138,6 +138,143 @@ Provides resource details for validated tokens.
   }
   ```
 
+
+---
+
+## 📡 User Management REST API
+
+The system exposes a secure administrative user management endpoint at `/api-users.php`. This allows registered OAuth application clients to list, read, register, update, or delete system users programmatically.
+
+### 1. Client Credentials Authentication
+To call this API, the calling client application must authenticate using its OAuth client credentials (`client_id` and `client_secret` from `tbl4users_oauth_clients`):
+- **HTTP Basic Authentication** (Recommended):
+  ```text
+  Authorization: Basic {Base64(client_id:client_secret)}
+  ```
+- **Request Parameters / JSON Body**: Include `client_id` and `client_secret` in the URL query parameters, URL-encoded POST body, or JSON payload keys.
+
+### 2. Request Routing
+Requests can be routed in two ways:
+- **HTTP Method Routing**: The API maps standard REST verbs automatically (`GET` = list/get, `POST` = create, `PUT/PATCH` = update, `DELETE` = delete).
+- **Explicit Parameter Routing**: Provide the `action` parameter (`list`, `get`, `create`, `update`, `delete`) in the request body or URL.
+
+---
+
+### 3. API Reference
+
+#### A. List Users
+Queries all system users.
+- **Method**: `GET`
+- **Action Parameter**: `action=list`
+- **Query Params**:
+  - `q` (Optional): Filter to search usernames containing a matching string.
+- **Headers**:
+  - `Authorization: Basic {BASE64_CREDENTIALS}`
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "users": [
+      {
+        "id": 1,
+        "username": "admin",
+        "created_at": "2026-06-17 04:15:50"
+      },
+      {
+        "id": 2,
+        "username": "user",
+        "created_at": "2026-06-17 04:15:50"
+      }
+    ]
+  }
+  ```
+
+#### B. Get User Details
+Fetches a single user's record.
+- **Method**: `GET`
+- **Action Parameter**: `action=get`
+- **Query Params**:
+  - `username` (Required): Username of the account to fetch.
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "user": {
+      "id": 2,
+      "username": "user",
+      "created_at": "2026-06-17 04:15:50"
+    }
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "error": "not_found",
+    "error_description": "User not found."
+  }
+  ```
+
+#### C. Register User
+Creates a new system account.
+- **Method**: `POST`
+- **Action Parameter**: `action=create`
+- **Request Body (JSON or Form URL-Encoded)**:
+  ```json
+  {
+    "username": "new_app_user",
+    "password": "secure_password"
+  }
+  ```
+- **Response (201 Created)**:
+  ```json
+  {
+    "status": "success",
+    "message": "User created successfully."
+  }
+  ```
+- **Response (409 Conflict)**:
+  ```json
+  {
+    "error": "conflict",
+    "error_description": "Username already exists."
+  }
+  ```
+
+#### D. Update User Password
+Resets the password for a user account.
+- **Method**: `PUT` or `PATCH`
+- **Action Parameter**: `action=update`
+- **Request Body**:
+  ```json
+  {
+    "username": "new_app_user",
+    "password": "new_secure_password"
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "message": "Password updated successfully."
+  }
+  ```
+
+#### E. Delete User
+Deletes the user and revokes associated tokens.
+- **Method**: `DELETE`
+- **Action Parameter**: `action=delete`
+- **Query Params / Request Body**:
+  - `username` (Required): Username to delete.
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "message": "User deleted successfully."
+  }
+  ```
+  > [!IMPORTANT]
+  > Deleting a user cleans up referential constraints in the application layer, automatically removing all associated authorization codes and access tokens linked to that user in `tbl4users_oauth_codes` and `tbl4users_oauth_tokens`.
+
 ---
 
 ## 🔒 Security Best Practices

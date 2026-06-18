@@ -246,136 +246,138 @@ class OAuthProvider {
     }
 }
 
-global $config;
+if (isset($page) && $page === 'oauth') {
+    global $config;
 
-$current_view = $config['PATH_TO_VIEW'] . 'oauth' . DS;
+    $current_view = $config['PATH_TO_VIEW'] . 'oauth' . DS;
 
-$ACT2PROCESS = get("action");
+    $ACT2PROCESS = get("action");
 
-switch ($ACT2PROCESS):
-    case "clients":
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
-            $current_url = 'index.php?' . $_SERVER['QUERY_STRING'];
-            header('Location: ./index.php?page=user&action=provider-login&redirect=' . urlencode($current_url));
-            exit;
-        }
+    switch ($ACT2PROCESS):
+        case "clients":
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
+                $current_url = 'index.php?' . $_SERVER['QUERY_STRING'];
+                header('Location: ./index.php?page=user&action=provider-login&redirect=' . urlencode($current_url));
+                exit;
+            }
 
-        $error = '';
-        $success = '';
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $form_action = get('form_action');
-            if ($form_action === 'create_client') {
-                $name = trim($_POST['name'] ?? '');
-                $redirect_uri = trim($_POST['redirect_uri'] ?? '');
-                $scope = trim($_POST['scope'] ?? 'profile');
+            $error = '';
+            $success = '';
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $form_action = get('form_action');
+                if ($form_action === 'create_client') {
+                    $name = trim($_POST['name'] ?? '');
+                    $redirect_uri = trim($_POST['redirect_uri'] ?? '');
+                    $scope = trim($_POST['scope'] ?? 'profile');
 
-                if ($name === '' || $redirect_uri === '') {
-                    $error = 'Client name and Redirect URI are required.';
-                } elseif (!filter_var($redirect_uri, FILTER_VALIDATE_URL)) {
-                    $error = 'Invalid Redirect URI format.';
-                } else {
-                    $new_client = OAuthProvider::createClient($name, $redirect_uri, $scope);
-                    $success = 'Client registered successfully!';
-                    log_event('oauth_client_create', 'success', 'Client created: ' . $name . ' (' . $new_client['client_id'] . ')', $_SESSION['username']);
-                }
-            } elseif ($form_action === 'delete_client') {
-                $client_id = $_POST['client_id'] ?? '';
-                if (OAuthProvider::deleteClient($client_id)) {
-                    $success = 'Client application deleted successfully.';
-                    log_event('oauth_client_delete', 'success', 'Client deleted: ' . $client_id, $_SESSION['username']);
-                } else {
-                    $error = 'Failed to delete client or client not found.';
+                    if ($name === '' || $redirect_uri === '') {
+                        $error = 'Client name and Redirect URI are required.';
+                    } elseif (!filter_var($redirect_uri, FILTER_VALIDATE_URL)) {
+                        $error = 'Invalid Redirect URI format.';
+                    } else {
+                        $new_client = OAuthProvider::createClient($name, $redirect_uri, $scope);
+                        $success = 'Client registered successfully!';
+                        log_event('oauth_client_create', 'success', 'Client created: ' . $name . ' (' . $new_client['client_id'] . ')', $_SESSION['username']);
+                    }
+                } elseif ($form_action === 'delete_client') {
+                    $client_id = $_POST['client_id'] ?? '';
+                    if (OAuthProvider::deleteClient($client_id)) {
+                        $success = 'Client application deleted successfully.';
+                        log_event('oauth_client_delete', 'success', 'Client deleted: ' . $client_id, $_SESSION['username']);
+                    } else {
+                        $error = 'Failed to delete client or client not found.';
+                    }
                 }
             }
-        }
 
-        $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'clients.php';
-        break;
-
-    case "authorize":
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $client_id = get('client_id');
-        $redirect_uri = get('redirect_uri');
-        $response_type = get('response_type');
-        $scope = get('scope', 'profile');
-        $state = get('state');
-
-        $client = OAuthProvider::findClient($client_id);
-        if (!$client) {
-            $error = 'OAuth error: Invalid Client ID.';
-            $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'error.php';
+            $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'clients.php';
             break;
-        }
 
-        if (strcasecmp($client['redirect_uri'], $redirect_uri) !== 0) {
-            $error = 'OAuth error: Redirect URI mismatch. Registered: ' . $client['redirect_uri'] . ', Requested: ' . $redirect_uri;
-            $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'error.php';
-            break;
-        }
-
-        if ($response_type !== 'code') {
-            $error = 'OAuth error: Unsupported response_type. Only response_type=code is supported.';
-            $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'error.php';
-            break;
-        }
-
-        // Redirect unauthenticated users to the provider-login form (NOT user-login, to avoid SSO loops)
-        if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
-            $current_url = 'index.php?' . $_SERVER['QUERY_STRING'];
-            header('Location: ./index.php?page=user&action=provider-login&redirect=' . urlencode($current_url));
-            exit;
-        }
-
-        // --- First-Party Auto-Approval ---
-        // If the requesting client is a first-party app, skip the consent screen entirely.
-        if (!empty($client['first_party'])) {
-            $code = OAuthProvider::createAuthCode($client_id, $redirect_uri, $_SESSION['username'], $scope, $state);
-            $redirect_target = $redirect_uri . (strpos($redirect_uri, '?') === false ? '?' : '&') . 'code=' . urlencode($code);
-            if (!empty($state)) {
-                $redirect_target .= '&state=' . urlencode($state);
+        case "authorize":
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
             }
-            log_event('oauth_authorize', 'auto-approved', 'First-party auto-approval for user ' . $_SESSION['username'] . ' on client: ' . $client_id, $_SESSION['username']);
-            header('Location: ' . $redirect_target);
-            exit;
-        }
 
-        // --- Third-Party Consent Flow ---
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $decision = $_POST['decision'] ?? 'deny';
-            if ($decision === 'approve') {
+            $client_id = get('client_id');
+            $redirect_uri = get('redirect_uri');
+            $response_type = get('response_type');
+            $scope = get('scope', 'profile');
+            $state = get('state');
+
+            $client = OAuthProvider::findClient($client_id);
+            if (!$client) {
+                $error = 'OAuth error: Invalid Client ID.';
+                $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'error.php';
+                break;
+            }
+
+            if (strcasecmp($client['redirect_uri'], $redirect_uri) !== 0) {
+                $error = 'OAuth error: Redirect URI mismatch. Registered: ' . $client['redirect_uri'] . ', Requested: ' . $redirect_uri;
+                $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'error.php';
+                break;
+            }
+
+            if ($response_type !== 'code') {
+                $error = 'OAuth error: Unsupported response_type. Only response_type=code is supported.';
+                $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'error.php';
+                break;
+            }
+
+            // Redirect unauthenticated users to the provider-login form (NOT user-login, to avoid SSO loops)
+            if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
+                $current_url = 'index.php?' . $_SERVER['QUERY_STRING'];
+                header('Location: ./index.php?page=user&action=provider-login&redirect=' . urlencode($current_url));
+                exit;
+            }
+
+            // --- First-Party Auto-Approval ---
+            // If the requesting client is a first-party app, skip the consent screen entirely.
+            if (!empty($client['first_party'])) {
                 $code = OAuthProvider::createAuthCode($client_id, $redirect_uri, $_SESSION['username'], $scope, $state);
                 $redirect_target = $redirect_uri . (strpos($redirect_uri, '?') === false ? '?' : '&') . 'code=' . urlencode($code);
                 if (!empty($state)) {
                     $redirect_target .= '&state=' . urlencode($state);
                 }
-                log_event('oauth_authorize', 'success', 'User ' . $_SESSION['username'] . ' authorized client: ' . $client_id, $_SESSION['username']);
-                header('Location: ' . $redirect_target);
-                exit;
-            } else {
-                $redirect_target = $redirect_uri . (strpos($redirect_uri, '?') === false ? '?' : '&') . 'error=access_denied';
-                if (!empty($state)) {
-                    $redirect_target .= '&state=' . urlencode($state);
-                }
-                log_event('oauth_authorize', 'denied', 'User ' . $_SESSION['username'] . ' denied access for client: ' . $client_id, $_SESSION['username']);
+                log_event('oauth_authorize', 'auto-approved', 'First-party auto-approval for user ' . $_SESSION['username'] . ' on client: ' . $client_id, $_SESSION['username']);
                 header('Location: ' . $redirect_target);
                 exit;
             }
-        }
 
-        $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'authorize.php';
-        break;
+            // --- Third-Party Consent Flow ---
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $decision = $_POST['decision'] ?? 'deny';
+                if ($decision === 'approve') {
+                    $code = OAuthProvider::createAuthCode($client_id, $redirect_uri, $_SESSION['username'], $scope, $state);
+                    $redirect_target = $redirect_uri . (strpos($redirect_uri, '?') === false ? '?' : '&') . 'code=' . urlencode($code);
+                    if (!empty($state)) {
+                        $redirect_target .= '&state=' . urlencode($state);
+                    }
+                    log_event('oauth_authorize', 'success', 'User ' . $_SESSION['username'] . ' authorized client: ' . $client_id, $_SESSION['username']);
+                    header('Location: ' . $redirect_target);
+                    exit;
+                } else {
+                    $redirect_target = $redirect_uri . (strpos($redirect_uri, '?') === false ? '?' : '&') . 'error=access_denied';
+                    if (!empty($state)) {
+                        $redirect_target .= '&state=' . urlencode($state);
+                    }
+                    log_event('oauth_authorize', 'denied', 'User ' . $_SESSION['username'] . ' denied access for client: ' . $client_id, $_SESSION['username']);
+                    header('Location: ' . $redirect_target);
+                    exit;
+                }
+            }
 
-    case "callback-demo":
-        $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'callback-demo.php';
-        break;
+            $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'authorize.php';
+            break;
 
-    default:
-        $view = $config['PATH_TO_VIEW'] . '404.php';
-        break;
-endswitch;
+        case "callback-demo":
+            $view = $config['PATH_TO_VIEW'] . 'oauth' . DS . 'callback-demo.php';
+            break;
+
+        default:
+            $view = $config['PATH_TO_VIEW'] . '404.php';
+            break;
+    endswitch;
+}

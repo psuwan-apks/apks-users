@@ -132,6 +132,12 @@ The system acts as a standard-compliant stateless OAuth2 Identity Provider (IdP)
 - **`db_connected` (`app/lib/functions-mysql.php`)**: Establishes PDO database connectors using strict exception modes and real prepared statements. Includes helper queries like `insertRecord`.
 - **General Utilities**: Includes random token generation, custom RFC-4122 v4 UUID binary converters, and JSON-formatted file event logging.
 
+### 9. Administrative User Management Console
+A comprehensive suite to manage user records:
+- **Visual Console**: Access `?page=users&action=users-view` to view a responsive dual-column list of users, search, reset passwords, or delete users (restricted to `admin` by default).
+- **SweetAlert2 Dialogs**: Modals and confirm windows provide fluid interactive actions and warnings for critical operations like account deletions.
+- **SSO Cleanup**: Deleting users automatically purges active/orphaned OAuth codes and tokens to maintain integrity.
+
 ---
 
 ## 🗄️ Database Architecture & Schema
@@ -222,6 +228,98 @@ Navigate to **OAuth Clients** in the sidebar (or visit `http://localhost:8000/in
 
 ---
 
+## 📡 User Management REST API
+
+The system exposes a secure administrative API at `/api-users.php` to enable external/connected applications to programmatically manage user credentials.
+
+### 1. Authentication
+The API utilizes **Client Credentials** authentication. The caller must authenticate using a registered OAuth Client (`client_id` and `client_secret` from `tbl4users_oauth_clients`):
+- **HTTP Basic Authentication**: Provide `client_id` as the username and `client_secret` as the password.
+- **Request Parameters / JSON Body**: Include `client_id` and `client_secret` parameters in the URL query string, POST request body, or raw JSON payload.
+
+### 2. API Actions & Endpoints
+
+#### A. List Users
+- **Method**: `GET`
+- **Endpoint**: `/api-users.php?action=list` (or simply `GET /api-users.php`)
+- **Query Parameters**:
+  - `q` (Optional): Search filter to query usernames matching a substring.
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "users": [
+      { "id": 1, "username": "admin", "created_at": "2026-06-17 04:15:50" },
+      { "id": 2, "username": "user", "created_at": "2026-06-17 04:15:50" }
+    ]
+  }
+  ```
+
+#### B. Get User Details
+- **Method**: `GET`
+- **Endpoint**: `/api-users.php?action=get&username={username}` (or simply `GET /api-users.php?username={username}`)
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "success",
+    "user": {
+      "id": 2,
+      "username": "user",
+      "created_at": "2026-06-17 04:15:50"
+    }
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  { "error": "not_found", "error_description": "User not found." }
+  ```
+
+#### C. Create User
+- **Method**: `POST`
+- **Endpoint**: `/api-users.php?action=create` (or simply `POST /api-users.php`)
+- **Headers**: `Content-Type: application/json` or `application/x-www-form-urlencoded`
+- **Request Body**:
+  ```json
+  {
+    "username": "new_api_user",
+    "password": "secure_password"
+  }
+  ```
+- **Response (201 Created)**:
+  ```json
+  { "status": "success", "message": "User created successfully." }
+  ```
+- **Response (409 Conflict)**:
+  ```json
+  { "error": "conflict", "error_description": "Username already exists." }
+  ```
+
+#### D. Update User Password
+- **Method**: `PUT` or `PATCH`
+- **Endpoint**: `/api-users.php?action=update`
+- **Request Body**:
+  ```json
+  {
+    "username": "new_api_user",
+    "password": "new_secure_password"
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  { "status": "success", "message": "Password updated successfully." }
+  ```
+
+#### E. Delete User
+- **Method**: `DELETE`
+- **Endpoint**: `/api-users.php?action=delete&username={username}`
+- **Response (200 OK)**:
+  ```json
+  { "status": "success", "message": "User deleted successfully." }
+  ```
+  *(Note: This performs a cascading cleanup, revoking any active authorization codes and tokens associated with the deleted user).*
+
+---
+
 ## 🚀 Setup & Installation
 
 ### Prerequisites
@@ -268,14 +366,12 @@ Navigate to **OAuth Clients** in the sidebar (or visit `http://localhost:8000/in
 
 To expand the capabilities of the APKS platform, consider the following next development milestones:
 
-1. **Advanced User & Account Management Console**:
-   - Build a visual administrative dashboard to manage user accounts, assign user roles, toggle statuses, and audit security events.
-2. **Enhanced Client Management Features**:
+1. **Enhanced Client Management Features**:
    - Introduce toggles to configure/revoke client first-party status, manage supported redirect URIs, configure customizable client token lifetimes, and deactivate/ban accounts.
-3. **Menu Manager Advanced Features**:
+2. **Menu Manager Advanced Features**:
    - Implement import/export functionality for `sidebar.json` with visual JSON schema validation.
    - Add localization helper tools within the menu editor to automatically map translation keys directly to `app/lang/en.php` and `app/lang/th.php`.
-4. **OAuth Access Token Revocation (RFC 7009)**:
+3. **OAuth Access Token Revocation (RFC 7009)**:
    - Expose the `/oauth-revoke.php` endpoint to allow third-party applications to cleanly invalidate active access tokens.
-5. **Database Maintenance & Log Viewer UI**:
+4. **Database Maintenance & Log Viewer UI**:
    - Provide a developers-only system panel to view raw MySQL connections, check table statuses, inspect execution logs, and monitor execution bottlenecks.

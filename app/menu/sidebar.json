@@ -102,11 +102,11 @@
                 "tooltipTransKey": "NAV_USERS_REGISTER_TOOLTIP",
                 "defaultTooltip": "Register Users",
                 "miniIcon": "UR",
-                "url": "./register.php",
+                "url": "./?page=user&action=user-register",
                 "activeRule": {
                     "type": "exact_page_action",
-                    "page": "register",
-                    "action": "register"
+                    "page": "user",
+                    "action": "user-register"
                 }
             }
         ],

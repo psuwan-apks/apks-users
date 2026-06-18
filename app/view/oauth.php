@@ -1,4 +1,6 @@
 <?php
+global $config;
+
 if (isset($view) && file_exists($view)) {
     include_once $view;
 } else {
