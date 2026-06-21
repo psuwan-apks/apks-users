@@ -79,12 +79,28 @@ $translations = $translations ?? [];
                                     <tr>
                                         <th class="ps-4">ID</th>
                                         <th><?php echo htmlspecialchars($translations['USERNAME'] ?? 'Username'); ?></th>
+                                        <th><?php echo htmlspecialchars($translations['SOURCE'] ?? 'Source'); ?></th>
                                         <th><?php echo htmlspecialchars($translations['CREATED_AT'] ?? 'Created At'); ?></th>
                                         <th class="text-end pe-4"><?php echo htmlspecialchars($translations['ACTIONS'] ?? 'Actions'); ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($users as $u): ?>
+                                        <?php
+                                        $source = $u['source'] ?? 'Database';
+                                        $badgeClass = 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+                                        if ($source === 'Database') {
+                                            $badgeClass = 'bg-primary-subtle text-primary border border-primary-subtle';
+                                        } elseif ($source === 'apks-users (JSON)' || $source === 'apks-users' || $source === 'APKS Users Portal (First-Party)') {
+                                            $badgeClass = 'bg-info-subtle text-info border border-info-subtle';
+                                        } elseif ($source === 'apks-erp (JSON)' || $source === 'apks-erp') {
+                                            $badgeClass = 'bg-success-subtle text-success border border-success-subtle';
+                                        } elseif ($source === 'apks-web (JSON)' || $source === 'apks-web') {
+                                            $badgeClass = 'bg-warning-subtle text-warning border border-warning-subtle';
+                                        } elseif ($source === 'default_app') {
+                                            $badgeClass = 'bg-dark-subtle text-dark border border-dark-subtle';
+                                        }
+                                        ?>
                                         <tr>
                                             <td class="ps-4 text-secondary small">#<?php echo htmlspecialchars($u['id']); ?></td>
                                             <td>
@@ -101,6 +117,11 @@ $translations = $translations ?? [];
                                                         </span>
                                                     </div>
                                                 </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge <?php echo $badgeClass; ?> fw-semibold rounded-pill">
+                                                    <?php echo htmlspecialchars($source); ?>
+                                                </span>
                                             </td>
                                             <td>
                                                 <span class="text-secondary small">

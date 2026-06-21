@@ -111,6 +111,23 @@ class OAuthProvider {
         }
     }
 
+    public static function updateClient(string $clientId, string $name, string $redirectUri, string $scope = 'profile'): bool {
+        self::init();
+        try {
+            $pdo = db_connected();
+            $stmt = $pdo->prepare("UPDATE `tbl4users_oauth_clients` SET `name` = :name, `redirect_uri` = :redirect_uri, `scope` = :scope WHERE `client_id` = :client_id");
+            $stmt->execute([
+                ':name' => $name,
+                ':redirect_uri' => $redirectUri,
+                ':scope' => $scope,
+                ':client_id' => $clientId
+            ]);
+            return true;
+        } catch (PDOException $e) {
+            throw new Exception("Failed to update OAuth client: " . $e->getMessage());
+        }
+    }
+
     public static function deleteClient(string $clientId): bool {
         self::init();
         try {
@@ -289,6 +306,28 @@ if (isset($page) && $page === 'oauth') {
                         log_event('oauth_client_delete', 'success', 'Client deleted: ' . $client_id, $_SESSION['username']);
                     } else {
                         $error = 'Failed to delete client or client not found.';
+                    }
+                } elseif ($form_action === 'update_client') {
+                    $client_id = trim($_POST['client_id'] ?? '');
+                    $name = trim($_POST['name'] ?? '');
+                    $redirect_uri = trim($_POST['redirect_uri'] ?? '');
+                    $scope = trim($_POST['scope'] ?? 'profile');
+
+                    if ($client_id === '' || $name === '' || $redirect_uri === '') {
+                        $error = 'Client ID, Name, and Redirect URI are required.';
+                    } elseif (!filter_var($redirect_uri, FILTER_VALIDATE_URL)) {
+                        $error = 'Invalid Redirect URI format.';
+                    } else {
+                        try {
+                            if (OAuthProvider::updateClient($client_id, $name, $redirect_uri, $scope)) {
+                                $success = 'Client application updated successfully!';
+                                log_event('oauth_client_update', 'success', 'Client updated: ' . $name . ' (' . $client_id . ')', $_SESSION['username']);
+                            } else {
+                                $error = 'Failed to update client or client not found.';
+                            }
+                        } catch (Exception $e) {
+                            $error = $e->getMessage();
+                        }
                     }
                 }
             }

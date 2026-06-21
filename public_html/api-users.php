@@ -99,6 +99,7 @@ switch (strtolower($action)) {
                 $formattedUsers[] = [
                     'id' => (int)$u['id'],
                     'username' => $u['username'],
+                    'application' => $u['source'] ?? 'default_app',
                     'created_at' => $u['created_at']
                 ];
             }
@@ -112,6 +113,7 @@ switch (strtolower($action)) {
     case 'create':
         $username = trim($_REQUEST['username'] ?? $jsonData['username'] ?? '');
         $password = $_REQUEST['password'] ?? $jsonData['password'] ?? '';
+        $application = trim($_REQUEST['application'] ?? $jsonData['application'] ?? 'default_app');
         
         if (empty($username) || empty($password)) {
             http_response_code(400);
@@ -126,7 +128,7 @@ switch (strtolower($action)) {
             break;
         }
         
-        if (User::createUser($username, $password)) {
+        if (User::createUser($username, $password, $application)) {
             log_event('api_user_create', 'success', "User created via API by client {$client_id}: {$username}", $username);
             http_response_code(201);
             echo json_encode(['status' => 'success', 'message' => 'User created successfully.']);

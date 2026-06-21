@@ -1,31 +1,76 @@
 <?php
 class User {
-    // Ensure default users exist in the database if empty
+    // Ensure default users exist in the database and migrate JSON users if any
     public static function init(): void {
         try {
             $pdo = db_connected();
+            
+            // 1. Seed default users if table is empty
             $stmt = $pdo->query("SELECT COUNT(*) FROM `tbl4users_users`");
             $count = $stmt->fetchColumn();
             
             if ($count == 0) {
-                // Seed default users
                 $defaultUsers = [
                     [
                         'username' => 'admin',
-                        'password_hash' => password_hash('admin123', PASSWORD_DEFAULT)
+                        'password_hash' => password_hash('admin123', PASSWORD_DEFAULT),
+                        'application' => 'default_app',
                     ],
                     [
                         'username' => 'user',
-                        'password_hash' => password_hash('password', PASSWORD_DEFAULT)
+                        'password_hash' => password_hash('password', PASSWORD_DEFAULT),
+                        'application' => 'default_app',
                     ]
                 ];
                 
-                $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`) VALUES (:username, :password_hash)");
+                $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`, `application`) VALUES (:username, :password_hash, :application)");
                 foreach ($defaultUsers as $user) {
                     $stmtInsert->execute([
                         ':username' => $user['username'],
-                        ':password_hash' => $user['password_hash']
+                        ':password_hash' => $user['password_hash'],
+                        ':application' => $user['application']
                     ]);
+                }
+            } else {
+                // Ensure 'user' (default) is also seeded if not exists
+                $stmtUserCheck = $pdo->prepare("SELECT COUNT(*) FROM `tbl4users_users` WHERE LOWER(`username`) = LOWER('user')");
+                $stmtUserCheck->execute();
+                if ($stmtUserCheck->fetchColumn() == 0) {
+                    $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`) VALUES (:username, :password_hash)");
+                    $stmtInsert->execute([
+                        ':username' => 'user',
+                        ':password_hash' => password_hash('password', PASSWORD_DEFAULT)
+                    ]);
+                }
+            }
+            
+            // 2. Migrate existing users from JSON files into the database
+            $jsonFiles = [
+                __DIR__ . '/users.json',
+                __DIR__ . '/../../../apks-erp/app/model/users.json',
+                __DIR__ . '/../../../apks-web/app/model/users.json',
+            ];
+            
+            $stmtExists = $pdo->prepare("SELECT COUNT(*) FROM `tbl4users_users` WHERE LOWER(`username`) = LOWER(:username)");
+            $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`) VALUES (:username, :password_hash)");
+            
+            foreach ($jsonFiles as $path) {
+                if (file_exists($path)) {
+                    $json = @file_get_contents($path);
+                    $users = json_decode($json, true);
+                    if (is_array($users)) {
+                        foreach ($users as $u) {
+                            if (isset($u['username'], $u['password_hash'])) {
+                                $stmtExists->execute([':username' => $u['username']]);
+                                if ($stmtExists->fetchColumn() == 0) {
+                                    $stmtInsert->execute([
+                                        ':username' => $u['username'],
+                                        ':password_hash' => $u['password_hash']
+                                    ]);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         } catch (PDOException $e) {
@@ -41,10 +86,14 @@ class User {
             $stmt = $pdo->prepare("SELECT * FROM `tbl4users_users` WHERE LOWER(`username`) = LOWER(:username)");
             $stmt->execute([':username' => $username]);
             $user = $stmt->fetch();
-            return $user ?: null;
+            if ($user) {
+                $user['source'] = 'Database';
+                return $user;
+            }
         } catch (PDOException $e) {
-            return null;
+            // Ignore DB exception
         }
+        return null;
     }
 
     // Authenticate a user by username and password
@@ -57,19 +106,20 @@ class User {
     }
 
     // Create a new user with hashed password
-    public static function createUser(string $username, string $password): bool {
+    public static function createUser(string $username, string $password, string $application = 'default_app'): bool {
         self::init();
-        // Prevent duplicate usernames
+        // Prevent duplicate usernames across all sources
         if (self::findByUsername($username) !== null) {
             return false;
         }
         
         try {
             $pdo = db_connected();
-            $stmt = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`) VALUES (:username, :password_hash)");
+            $stmt = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`, `application`) VALUES (:username, :password_hash, :application)");
             return $stmt->execute([
                 ':username' => $username,
-                ':password_hash' => password_hash($password, PASSWORD_DEFAULT)
+                ':password_hash' => password_hash($password, PASSWORD_DEFAULT),
+                ':application' => $application
             ]);
         } catch (PDOException $e) {
             return false;
@@ -82,10 +132,11 @@ class User {
         try {
             $pdo = db_connected();
             $stmt = $pdo->prepare("UPDATE `tbl4users_users` SET `password_hash` = :password_hash WHERE LOWER(`username`) = LOWER(:username)");
-            return $stmt->execute([
+            $stmt->execute([
                 ':username' => $username,
                 ':password_hash' => password_hash($password, PASSWORD_DEFAULT)
             ]);
+            return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
             return false;
         }
@@ -118,18 +169,30 @@ class User {
     // Fetch all users, with optional search filter
     public static function getAllUsers(?string $searchQuery = null): array {
         self::init();
+        $users = [];
+
         try {
             $pdo = db_connected();
             if ($searchQuery !== null && trim($searchQuery) !== '') {
-                $stmt = $pdo->prepare("SELECT `id`, `username`, `created_at` FROM `tbl4users_users` WHERE `username` LIKE :search ORDER BY `id` DESC");
+                $stmt = $pdo->prepare("SELECT `id`, `username`, `application`, `created_at` FROM `tbl4users_users` WHERE `username` LIKE :search ORDER BY `id` DESC");
                 $stmt->execute([':search' => '%' . $searchQuery . '%']);
             } else {
-                $stmt = $pdo->query("SELECT `id`, `username`, `created_at` FROM `tbl4users_users` ORDER BY `id` DESC");
+                $stmt = $pdo->query("SELECT `id`, `username`, `application`, `created_at` FROM `tbl4users_users` ORDER BY `id` DESC");
             }
-            return $stmt->fetchAll() ?: [];
+            $dbUsers = $stmt->fetchAll() ?: [];
+            foreach ($dbUsers as $u) {
+                $users[] = [
+                    'id' => (int)$u['id'],
+                    'username' => $u['username'],
+                    'created_at' => $u['created_at'],
+                    'source' => !empty($u['application']) ? $u['application'] : 'Database'
+                ];
+            }
         } catch (PDOException $e) {
-            return [];
+            // Ignore
         }
+
+        return $users;
     }
 }
 

@@ -13,7 +13,12 @@ if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
     exit;
 }
 
-
+// Ensure user is admin
+if (strtolower($_SESSION['username'] ?? '') !== 'admin') {
+    header('HTTP/1.0 404 Not Found');
+    $view = $config['PATH_TO_VIEW'] . '404.php';
+    return;
+}
 
 // Include User model
 require_once APPLICATION_PATH . DS . 'model' . DS . 'user.php';
@@ -29,12 +34,12 @@ switch ($ACT2PROCESS):
         // Handle POST requests
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $form_action = get('form_action');
-            
+
             if ($form_action === 'create_user') {
                 $username = trim($_POST['username'] ?? '');
                 $password = $_POST['password'] ?? '';
                 $confirm = $_POST['confirm'] ?? '';
-                
+
                 if ($username === '' || $password === '') {
                     $error = 'Username and password are required.';
                 } elseif ($password !== $confirm) {
@@ -51,7 +56,7 @@ switch ($ACT2PROCESS):
             } elseif ($form_action === 'update_user') {
                 $username = trim($_POST['username'] ?? '');
                 $password = $_POST['password'] ?? '';
-                
+
                 if ($username === '' || $password === '') {
                     $error = 'Username and password are required.';
                 } else {
@@ -65,7 +70,7 @@ switch ($ACT2PROCESS):
                 }
             } elseif ($form_action === 'delete_user') {
                 $username = trim($_POST['username'] ?? '');
-                
+
                 if ($username === '') {
                     $error = 'Username is required.';
                 } elseif (strtolower($username) === strtolower($_SESSION['username'])) {
@@ -82,11 +87,11 @@ switch ($ACT2PROCESS):
                 }
             }
         }
-        
+
         // Fetch users
         $search = get('q');
         $users = User::getAllUsers($search);
-        
+
         $view = $config['PATH_TO_VIEW'] . 'users.php';
         break;
 endswitch;

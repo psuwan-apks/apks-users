@@ -69,4 +69,5 @@ return [
     'DELETE_CONFIRM_TITLE' => 'Are you sure?',
     'DELETE_CONFIRM_TEXT' => 'This will permanently delete the user and revoke all active OAuth tokens and authorization codes.',
     'YES_DELETE' => 'Yes, delete!',
+    'SOURCE' => 'Application',
 ];

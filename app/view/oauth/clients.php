@@ -75,6 +75,13 @@ $clients = OAuthProvider::getClients();
                                                 </span>
                                             </td>
                                             <td class="text-end pe-4">
+                                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 edit-client-btn me-1"
+                                                        data-client-id="<?php echo htmlspecialchars($c['client_id']); ?>"
+                                                        data-name="<?php echo htmlspecialchars($c['name']); ?>"
+                                                        data-redirect-uri="<?php echo htmlspecialchars($c['redirect_uri']); ?>"
+                                                        data-scope="<?php echo htmlspecialchars($c['scope'] ?? 'profile'); ?>">
+                                                    <i class="fa-thin fa-pen me-1"></i> Edit
+                                                </button>
                                                 <form method="post" class="d-inline delete-client-form">
                                                     <input type="hidden" name="form_action" value="delete_client">
                                                     <input type="hidden" name="client_id" value="<?php echo htmlspecialchars($c['client_id']); ?>">
@@ -162,6 +169,50 @@ $clients = OAuthProvider::getClients();
     </div>
 </div>
 
+<!-- Edit Client Modal -->
+<div class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-light py-3">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center" id="editClientModalLabel">
+                    <i class="fa-thin fa-pen text-primary me-2 fs-4"></i>
+                    Edit Client Application
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" id="editClientForm">
+                    <input type="hidden" name="form_action" value="update_client">
+                    <input type="hidden" id="edit_client_id" name="client_id">
+                    
+                    <div class="mb-3">
+                        <label for="edit_name" class="form-label fw-semibold text-secondary small">Application Name</label>
+                        <input type="text" class="form-control rounded-3" id="edit_name" name="name" required placeholder="e.g. My External Portal">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_redirect_uri" class="form-label fw-semibold text-secondary small">Redirect Callback URI</label>
+                        <input type="url" class="form-control rounded-3" id="edit_redirect_uri" name="redirect_uri" required placeholder="http://localhost:8000/oauth-callback-demo.php">
+                        <div class="form-text text-muted small">Must be a valid absolute HTTP or HTTPS endpoint.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="edit_scope" class="form-label fw-semibold text-secondary small">Requested Scopes</label>
+                        <select class="form-select rounded-3" id="edit_scope" name="scope">
+                            <option value="profile">profile (username read-only)</option>
+                            <option value="profile email">profile email (username & email)</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-semibold shadow-sm">
+                        <i class="fa-thin fa-floppy-disk me-1"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Secret Toggler
@@ -225,6 +276,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     form.submit();
                 }
             });
+        });
+    });
+
+    // Edit Client Click handler to populate and show modal
+    document.querySelectorAll('.edit-client-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var clientId = this.getAttribute('data-client-id');
+            var name = this.getAttribute('data-name');
+            var redirectUri = this.getAttribute('data-redirect-uri');
+            var scope = this.getAttribute('data-scope');
+
+            document.getElementById('edit_client_id').value = clientId;
+            document.getElementById('edit_name').value = name;
+            document.getElementById('edit_redirect_uri').value = redirectUri;
+            document.getElementById('edit_scope').value = scope;
+
+            var editModal = new bootstrap.Modal(document.getElementById('editClientModal'));
+            editModal.show();
         });
     });
 });
