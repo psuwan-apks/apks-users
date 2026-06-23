@@ -54,22 +54,32 @@ app-web/                        # Parent workspace directory
     │   │   ├── guest.php       # Guest actions routing
     │   │   ├── oauth.php       # OAuth2 provider model & actions router
     │   │   ├── user.php        # Authentication, registration & SSO callback logic
-    │   │   └── users.json      # Credentials store file (hashed)
+    │   │   ├── users.json      # Credentials store file (hashed)
+    │   │   └── users.php       # User management administrative logic
     │   └── view/               # Layout & page templates
-    │       ├── oauth/          # OAuth provider templates (authorize, client dashboard)
-    │       ├── user/           # User account templates (SSO redirect, provider login, register)
+    │       ├── oauth/          # OAuth provider templates
+    │       │   ├── authorize.php # Consent confirmation screen
+    │       │   ├── clients.php # Client applications management console
+    │       │   └── error.php   # OAuth error display page
+    │       ├── user/           # User account templates
+    │       │   ├── provider-login.php # Login page shown by the OAuth provider
+    │       │   ├── user-login.php # Single Sign-On (SSO) login initiator page
+    │       │   └── user-register.php # User registration form
     │       ├── 404.php         # Page not found error layout
     │       ├── calendar.php    # Calendar view page (Schedule-X integration)
     │       ├── layout.php      # Main responsive dashboard layout wrapper
     │       ├── menu-footer.php # Footer bar wrapper
     │       ├── menu-navbar.php # Top navbar wrapper
     │       ├── menu-sidebar.php # Dynamic sidebar component wrapper
-    │       └── page-dashboard.php # Main dashboard view content
+    │       ├── page-dashboard.php # Main dashboard view content
+    │       └── users.php       # User management administrative dashboard view
     ├── databases/              # Database schema & verification utilities
     │   ├── db4apks_webapp_backup.sql # Database backup template
+    │   ├── migration_add_application.sql # Migration script to add application column
     │   ├── schema.sql          # Clean MyISAM relational schema (no foreign keys)
     │   └── verify.php          # Database integrity & credential validation script
     └── public_html/            # Web Server Document Root (Publicly Accessible)
+        ├── api-users.php       # Secure user management REST API endpoint
         ├── ex-genpdf.php       # TCPDF Thai script PDF generation example
         ├── index.php           # Front controller & request router
         ├── logout.php          # Sign-out logic and session destruction
@@ -145,7 +155,7 @@ A comprehensive suite to manage user records:
 The system uses a **No-Foreign-Key (MyISAM-compatible) relational schema** hosted on the `db4apks_webapp` MySQL database. Referential integrity is strictly maintained by application-layer operations.
 
 1. **User Accounts (`tbl4users_users`)**
-   Stores credentials and usernames. Default seeded users are `admin` (`admin123`) and `user` (`password`).
+   Stores credentials, usernames, and their source `application` name (e.g., `'default_app'`). Default seeded users are `admin` (`admin123`) and `user` (`password`).
 2. **Registered OAuth Clients (`tbl4users_oauth_clients`)**
    Stores application profiles allowed to request client tokens, redirect targets, and the `first_party` bypass flag.
 3. **One-Time Codes (`tbl4users_oauth_codes`)**
@@ -249,8 +259,8 @@ The API utilizes **Client Credentials** authentication. The caller must authenti
   {
     "status": "success",
     "users": [
-      { "id": 1, "username": "admin", "created_at": "2026-06-17 04:15:50" },
-      { "id": 2, "username": "user", "created_at": "2026-06-17 04:15:50" }
+      { "id": 1, "username": "admin", "application": "default_app", "created_at": "2026-06-17 04:15:50" },
+      { "id": 2, "username": "user", "application": "default_app", "created_at": "2026-06-17 04:15:50" }
     ]
   }
   ```
@@ -282,9 +292,11 @@ The API utilizes **Client Credentials** authentication. The caller must authenti
   ```json
   {
     "username": "new_api_user",
-    "password": "secure_password"
+    "password": "secure_password",
+    "application": "optional_source_app"
   }
   ```
+  *(Note: `application` is optional and defaults to `"default_app"` if not provided).*
 - **Response (201 Created)**:
   ```json
   { "status": "success", "message": "User created successfully." }
