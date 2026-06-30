@@ -10,9 +10,13 @@ USE `db4apks_webapp`;
 -- 1. Users Table
 CREATE TABLE IF NOT EXISTS `tbl4users_users` (
     `id`            INT AUTO_INCREMENT PRIMARY KEY,
+    `uuid`          CHAR(36)     UNIQUE,
     `username`      VARCHAR(50)  NOT NULL UNIQUE,
     `password_hash` VARCHAR(255) NOT NULL,
     `application`   VARCHAR(100) NOT NULL,
+    `email_verified` TINYINT(1)  DEFAULT 0,
+    `status`        VARCHAR(50)  DEFAULT 'active',
+    `failed_login_attempts` INT  DEFAULT 0,
     `created_at`    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -22,6 +26,9 @@ CREATE TABLE IF NOT EXISTS `tbl4users_oauth_clients` (
     `client_secret` VARCHAR(80)   NOT NULL,
     `name`          VARCHAR(100)  NOT NULL,
     `redirect_uri`  VARCHAR(2000) NOT NULL,
+    `allowed_redirect_uris` JSON  NULL,
+    `allowed_grant_types` JSON    NULL,
+    `allowed_scopes` JSON         NULL,
     `scope`         VARCHAR(255)  NOT NULL DEFAULT 'profile',
     `first_party`   TINYINT(1)   NOT NULL DEFAULT 0,
     `created_at`    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
@@ -35,6 +42,8 @@ CREATE TABLE IF NOT EXISTS `tbl4users_oauth_codes` (
     `username`     VARCHAR(50)   NOT NULL,
     `scope`        VARCHAR(255)  NOT NULL,
     `state`        VARCHAR(255)  NULL,
+    `code_challenge` VARCHAR(255) NULL,
+    `code_challenge_method` VARCHAR(50) NULL,
     `expires_at`   INT UNSIGNED  NOT NULL,
     `created_at`   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_codes_client_id`  (`client_id`),
@@ -47,9 +56,23 @@ CREATE TABLE IF NOT EXISTS `tbl4users_oauth_tokens` (
     `client_id`    VARCHAR(80)   NOT NULL,
     `username`     VARCHAR(50)   NOT NULL,
     `scope`        VARCHAR(255)  NOT NULL,
+    `refresh_token` VARCHAR(120) NULL,
+    `refresh_token_expires_at` INT UNSIGNED NULL,
+    `is_revoked`   TINYINT(1)    DEFAULT 0,
     `expires_at`   INT UNSIGNED  NOT NULL,
     `created_at`   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_tokens_client_id`  (`client_id`),
     INDEX `idx_tokens_username`   (`username`),
     INDEX `idx_tokens_expires_at` (`expires_at`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 5. OAuth Consents Table
+CREATE TABLE IF NOT EXISTS `tbl4users_oauth_consents` (
+    `id`             INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id`        INT           NOT NULL,
+    `client_id`      VARCHAR(80)   NOT NULL,
+    `scopes_granted` JSON          NOT NULL,
+    `granted_at`     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_consents_user_id`   (`user_id`),
+    INDEX `idx_consents_client_id` (`client_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

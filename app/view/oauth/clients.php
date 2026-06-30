@@ -79,7 +79,10 @@ $clients = OAuthProvider::getClients();
                                                         data-client-id="<?php echo htmlspecialchars($c['client_id']); ?>"
                                                         data-name="<?php echo htmlspecialchars($c['name']); ?>"
                                                         data-redirect-uri="<?php echo htmlspecialchars($c['redirect_uri']); ?>"
-                                                        data-scope="<?php echo htmlspecialchars($c['scope'] ?? 'profile'); ?>">
+                                                        data-scope="<?php echo htmlspecialchars($c['scope'] ?? 'profile'); ?>"
+                                                        data-allowed-redirect-uris="<?php echo htmlspecialchars(implode(', ', json_decode($c['allowed_redirect_uris'] ?? '[]', true) ?: [])); ?>"
+                                                        data-allowed-grant-types="<?php echo htmlspecialchars(implode(', ', json_decode($c['allowed_grant_types'] ?? '[]', true) ?: [])); ?>"
+                                                        data-allowed-scopes="<?php echo htmlspecialchars(implode(', ', json_decode($c['allowed_scopes'] ?? '[]', true) ?: [])); ?>">
                                                     <i class="fa-thin fa-pen me-1"></i> Edit
                                                 </button>
                                                 <form method="post" class="d-inline delete-client-form">
@@ -151,12 +154,30 @@ $clients = OAuthProvider::getClients();
                             <div class="form-text text-muted small">Must be a valid absolute HTTP or HTTPS endpoint.</div>
                         </div>
 
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label for="scope" class="form-label fw-semibold text-secondary small">Requested Scopes</label>
                             <select class="form-select rounded-3 select2" id="scope" name="scope">
                                 <option value="profile">profile (username read-only)</option>
                                 <option value="profile email">profile email (username & email)</option>
                             </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="allowed_redirect_uris" class="form-label fw-semibold text-secondary small">Allowed Redirect URIs</label>
+                            <input type="text" class="form-control rounded-3" id="allowed_redirect_uris" name="allowed_redirect_uris" placeholder="Comma-separated URIs">
+                            <div class="form-text text-muted small">Leave blank to use the default Redirect Callback URI.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="allowed_grant_types" class="form-label fw-semibold text-secondary small">Allowed Grant Types</label>
+                            <input type="text" class="form-control rounded-3" id="allowed_grant_types" name="allowed_grant_types" placeholder="e.g. authorization_code, refresh_token">
+                            <div class="form-text text-muted small">Comma-separated list of permitted grant types.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="allowed_scopes" class="form-label fw-semibold text-secondary small">Allowed Scopes</label>
+                            <input type="text" class="form-control rounded-3" id="allowed_scopes" name="allowed_scopes" placeholder="e.g. profile, email">
+                            <div class="form-text text-muted small">Comma-separated list of permitted scopes.</div>
                         </div>
                         
                         <button type="submit" class="btn btn-success w-100 py-2.5 rounded-pill fw-semibold shadow-sm">
@@ -196,12 +217,27 @@ $clients = OAuthProvider::getClients();
                         <div class="form-text text-muted small">Must be a valid absolute HTTP or HTTPS endpoint.</div>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label for="edit_scope" class="form-label fw-semibold text-secondary small">Requested Scopes</label>
                         <select class="form-select rounded-3" id="edit_scope" name="scope">
                             <option value="profile">profile (username read-only)</option>
                             <option value="profile email">profile email (username & email)</option>
                         </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_allowed_redirect_uris" class="form-label fw-semibold text-secondary small">Allowed Redirect URIs</label>
+                        <input type="text" class="form-control rounded-3" id="edit_allowed_redirect_uris" name="allowed_redirect_uris" placeholder="Comma-separated URIs">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_allowed_grant_types" class="form-label fw-semibold text-secondary small">Allowed Grant Types</label>
+                        <input type="text" class="form-control rounded-3" id="edit_allowed_grant_types" name="allowed_grant_types" placeholder="e.g. authorization_code, refresh_token">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="edit_allowed_scopes" class="form-label fw-semibold text-secondary small">Allowed Scopes</label>
+                        <input type="text" class="form-control rounded-3" id="edit_allowed_scopes" name="allowed_scopes" placeholder="e.g. profile, email">
                     </div>
                     
                     <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-semibold shadow-sm">
@@ -287,11 +323,17 @@ document.addEventListener('DOMContentLoaded', function() {
             var name = this.getAttribute('data-name');
             var redirectUri = this.getAttribute('data-redirect-uri');
             var scope = this.getAttribute('data-scope');
+            var allowedUris = this.getAttribute('data-allowed-redirect-uris');
+            var allowedGrants = this.getAttribute('data-allowed-grant-types');
+            var allowedScopes = this.getAttribute('data-allowed-scopes');
 
             document.getElementById('edit_client_id').value = clientId;
             document.getElementById('edit_name').value = name;
             document.getElementById('edit_redirect_uri').value = redirectUri;
             document.getElementById('edit_scope').value = scope;
+            document.getElementById('edit_allowed_redirect_uris').value = allowedUris;
+            document.getElementById('edit_allowed_grant_types').value = allowedGrants;
+            document.getElementById('edit_allowed_scopes').value = allowedScopes;
 
             var editModal = new bootstrap.Modal(document.getElementById('editClientModal'));
             editModal.show();

@@ -6,7 +6,7 @@ This document describes the design, database architecture, and integration flows
 
 ## 🏗️ System Architecture
 
-The Identity Provider implements the standard **OAuth2 Authorization Code Grant** flow. It consists of the following components:
+The Identity Provider implements the standard **OAuth2 Authorization Code Grant** flow with support for **Proof Key for Code Exchange (PKCE)** to secure authorization code exchanges on public and web clients.
 
 ```mermaid
 sequenceDiagram
@@ -16,7 +16,7 @@ sequenceDiagram
     participant DB as MySQL Database
 
     User->>Client: Click "Log in with APKS"
-    Client->>User: Redirect to Authorize Endpoint (?page=oauth&action=authorize)
+    Client->>User: Redirect to Authorize Endpoint (?page=oauth&action=authorize&code_challenge=...&code_challenge_method=S256)
     User->>Auth: Request Authorization Page
     Auth->>DB: Check if user is logged in
     alt User not logged in
@@ -26,23 +26,26 @@ sequenceDiagram
         Auth->>User: Set Session & Redirect back to Authorize
     end
     
-    Auth->>DB: Check if Client is First-Party
-    alt Client is First-Party (apks-users-client)
+    Auth->>DB: Check for existing User Consent or First-Party flag
+    alt Client is First-Party or has existing Consent
         Note over Auth,DB: Auto-approve consent
-    else Client is Third-Party (demo-client)
+    else Client is Third-Party and no existing Consent
         Auth->>User: Display Consent Dialog (Approve/Deny)
         User->>Auth: Click "Approve Access"
+        opt Remember Consent checked
+            Auth->>DB: Save/Update Consent in tbl4users_oauth_consents
+        end
     end
     
-    Auth->>DB: Generate Single-use Authorization Code
-    Auth->>User: Redirect to client redirect_uri with ?code=CODE
-    User->>Client: Send Auth Code
-    Client->>Auth: POST /oauth-token.php (code, client_id, client_secret)
+    Auth->>DB: Generate Single-use Authorization Code (stores code_challenge/method)
+    Auth->>User: Redirect to client redirect_uri with ?code=CODE&state=STATE
+    User->>Client: Send Auth Code & State
+    Client->>Auth: POST /oauth-token.php (code, client_id, client_secret, redirect_uri, code_verifier)
     Auth->>DB: Validate code and credentials
-    Auth->>DB: Invalidate code & issue Access Token
-    Auth-->>Client: Return Access Token json
+    Auth->>DB: Invalidate code, verify PKCE challenge, & issue tokens
+    Auth-->>Client: Return Access Token & Refresh Token JSON
     Client->>Auth: GET /oauth-userinfo.php (Authorization: Bearer ACCESS_TOKEN)
-    Auth-->>Client: Return User Profile (sub, username)
+    Auth-->>Client: Return User Profile (sub, username, optional email)
 ```
 
 ---
@@ -52,38 +55,77 @@ sequenceDiagram
 The system uses a **No-Foreign-Key (MyISAM-compatible) relational schema** hosted on the `db4apks_webapp` MySQL database. Referential integrity is strictly maintained by application-layer transactions.
 
 ### 1. User Records (`tbl4users_users`)
-Stores hashed authentication accounts.
-- `id` (int, Primary Key, Auto-increment)
-- `username` (varchar(50), Unique)
-- `password` (varchar(255))
-- `email` (varchar(100), Unique)
-- `created_at` (timestamp, Default CURRENT_TIMESTAMP)
+Stores hashed authentication accounts and profile metadata.
+
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `id` | INT | Primary Key, Auto-increment |
+| `uuid` | CHAR(36) | Immutable unique identifier. Used as the OIDC `sub` claim. |
+| `username` | VARCHAR(50) | Unique username used for logins. |
+| `password_hash` | VARCHAR(255) | Password hashed using bcrypt (`PASSWORD_DEFAULT`). |
+| `application` | VARCHAR(100) | Application context associated with the user. |
+| `email_verified` | TINYINT(1) | Status of email verification (`0` = unverified, `1` = verified). Default: `0`. |
+| `status` | VARCHAR(50) | Account state (e.g., `active`, `suspended`, `banned`). Default: `'active'`. |
+| `failed_login_attempts` | INT | Counter for failed logins. Resets to `0` on successful authentication. |
+| `created_at` | TIMESTAMP | Record creation date. Default: `CURRENT_TIMESTAMP`. |
 
 ### 2. Registered Clients (`tbl4users_oauth_clients`)
-Defines applications allowed to request access tokens.
-- `client_id` (varchar(80), Primary Key)
-- `client_secret` (varchar(80))
-- `redirect_uri` (varchar(2000))
-- `scope` (varchar(250))
-- `name` (varchar(100))
-- `first_party` (tinyint(1), Default 0) — If `1`, bypasses user consent prompt.
+Defines application client configurations permitted to request access tokens.
+
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `client_id` | VARCHAR(80) | Primary Key. The unique public identifier of the client. |
+| `client_secret` | VARCHAR(80) | Secure secret key for client authentication. |
+| `name` | VARCHAR(100) | Human-readable name of the application. |
+| `redirect_uri` | VARCHAR(2000) | Default authorized callback URI. |
+| `allowed_redirect_uris` | JSON | Strict JSON list of authorized callback URLs for security validation checks. |
+| `allowed_grant_types` | JSON | JSON list of permitted authorization flows (e.g., `["authorization_code", "refresh_token"]`). |
+| `allowed_scopes` | JSON | JSON list of scopes this client is allowed to request (e.g., `["profile", "email"]`). |
+| `scope` | VARCHAR(255) | Default scope for this client. Default: `'profile'`. |
+| `first_party` | TINYINT(1) | Flags first-party apps (`1` = bypasses the user consent screen, `0` = show consent). |
+| `created_at` | TIMESTAMP | Client creation date. Default: `CURRENT_TIMESTAMP`. |
 
 ### 3. Short-lived Codes (`tbl4users_oauth_codes`)
-One-time authorization tokens (lifetime: 5 minutes).
-- `authorization_code` (varchar(80), Primary Key)
-- `client_id` (varchar(80), Indexed)
-- `username` (varchar(50))
-- `redirect_uri` (varchar(2000))
-- `expires_at` (datetime, Indexed)
-- `scope` (varchar(250))
+Stores single-use authorization codes with a lifetime of 5 minutes.
+
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `code` | VARCHAR(80) | Primary Key. The authorization code string. |
+| `client_id` | VARCHAR(80) | ID of the client that requested the code. Indexed. |
+| `redirect_uri` | VARCHAR(2000) | Redirect URI matching the original authorization request. |
+| `username` | VARCHAR(50) | The username of the user granting the authorization. |
+| `scope` | VARCHAR(255) | The space-separated list of scopes authorized by the user. |
+| `state` | VARCHAR(255) | The state token passed in the authorize request for CSRF protection. |
+| `code_challenge` | VARCHAR(255) | The PKCE code challenge. |
+| `code_challenge_method` | VARCHAR(50) | The PKCE code challenge method (e.g., `S256`). |
+| `expires_at` | INT UNSIGNED | Unix timestamp when the code expires. Indexed. |
+| `created_at` | TIMESTAMP | Record creation date. Default: `CURRENT_TIMESTAMP`. |
 
 ### 4. Sessions & Tokens (`tbl4users_oauth_tokens`)
-Authenticated API tokens (default lifetime: 1 hour).
-- `access_token` (varchar(120), Primary Key)
-- `client_id` (varchar(80), Indexed)
-- `username` (varchar(50), Indexed)
-- `expires_at` (datetime, Indexed)
-- `scope` (varchar(250))
+Stores active access tokens and associated long-lived refresh tokens.
+
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `access_token` | VARCHAR(120) | Primary Key. The active bearer token string. |
+| `client_id` | VARCHAR(80) | ID of the client that owns the token. Indexed. |
+| `username` | VARCHAR(50) | The username of the resource owner. Indexed. |
+| `scope` | VARCHAR(255) | Scopes granted to the bearer token. |
+| `refresh_token` | VARCHAR(120) | Long-lived refresh token used to request new access tokens silently. |
+| `refresh_token_expires_at` | INT UNSIGNED | Unix timestamp when the refresh token expires. |
+| `is_revoked` | TINYINT(1) | Revocation status (`1` = revoked, `0` = active). Used for RFC 7009 revocation. |
+| `expires_at` | INT UNSIGNED | Unix timestamp when the access token expires. Indexed. |
+| `created_at` | TIMESTAMP | Record creation date. Default: `CURRENT_TIMESTAMP`. |
+
+### 5. User Consent Tracking (`tbl4users_oauth_consents`)
+Records explicit authorizations given by users to client applications to support persistent consent bypass on subsequent logins.
+
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `id` | INT | Primary Key, Auto-increment. |
+| `user_id` | INT | The database ID of the user (`tbl4users_users.id`). Indexed. |
+| `client_id` | VARCHAR(80) | The client ID (`tbl4users_oauth_clients.client_id`). Indexed. |
+| `scopes_granted` | JSON | JSON list of scopes granted to this client by this user. |
+| `granted_at` | TIMESTAMP | Date consent was recorded. Default: `CURRENT_TIMESTAMP`. |
 
 ---
 
@@ -96,15 +138,17 @@ Renders the login/consent gate.
   - `client_id` (Required): The client ID of the requesting application.
   - `redirect_uri` (Required): The URL to redirect back to. Must match client configuration.
   - `response_type` (Required): Must be `code`.
-  - `scope` (Optional): e.g. `profile` or `profile email`.
+  - `scope` (Optional): e.g. `profile` or `profile email`. Default: `profile`.
   - `state` (Recommended): A CSRF token.
+  - `code_challenge` (Optional): The challenge string for PKCE verification.
+  - `code_challenge_method` (Optional): The PKCE transformation method (e.g., `S256` or `plain`).
 - **Behavior**:
   - If the user session is absent, redirects to `provider-login`.
-  - If the client is marked as `first_party=1`, it immediately generates an authorization code and redirects.
-  - Otherwise, displays a visual consent approval window listing client details and scopes.
+  - If the client is marked as `first_party=1`, or if a record matching the user and client ID exists in `tbl4users_oauth_consents` covering the requested scopes, the authorization server immediately generates a code and redirects.
+  - Otherwise, displays a visual consent approval window listing client details, requested scopes, and a checkbox to remember approval.
 
 ### 2. Token Exchange Endpoint
-Exchanges authorization codes for API tokens.
+Exchanges authorization codes for access and refresh tokens.
 - **URL**: `POST /oauth-token.php`
 - **Headers**:
   - `Content-Type: application/x-www-form-urlencoded`
@@ -114,12 +158,14 @@ Exchanges authorization codes for API tokens.
   - `redirect_uri` (Required): The callback URL.
   - `client_id` (Required): The client ID.
   - `client_secret` (Required): The client secret.
-- **Response**:
+  - `code_verifier` (Optional): The plain-text code verifier matching the original `code_challenge` (for clients utilizing PKCE).
+- **Response (200 OK)**:
   ```json
   {
     "access_token": "token_e3fb84a0d922...",
     "token_type": "Bearer",
     "expires_in": 3600,
+    "refresh_token": "refresh_b4a8e0f1...",
     "scope": "profile"
   }
   ```
@@ -129,7 +175,7 @@ Provides resource details for validated tokens.
 - **URL**: `GET /oauth-userinfo.php`
 - **Headers**:
   - `Authorization: Bearer {YOUR_ACCESS_TOKEN}`
-- **Response**:
+- **Response (200 OK)**:
   ```json
   {
     "sub": "admin",
@@ -137,7 +183,17 @@ Provides resource details for validated tokens.
     "scope": "profile"
   }
   ```
-
+- **Response (200 OK with Email Scope)**:
+  If the token has authorization for the `email` scope, a mock email address matched to the user is included:
+  ```json
+  {
+    "sub": "admin",
+    "username": "admin",
+    "scope": "profile email",
+    "email": "admin@internal.ecosystem",
+    "email_verified": true
+  }
+  ```
 
 ---
 
@@ -178,11 +234,13 @@ Queries all system users.
       {
         "id": 1,
         "username": "admin",
+        "application": "default_app",
         "created_at": "2026-06-17 04:15:50"
       },
       {
         "id": 2,
         "username": "user",
+        "application": "default_app",
         "created_at": "2026-06-17 04:15:50"
       }
     ]
@@ -222,9 +280,11 @@ Creates a new system account.
   ```json
   {
     "username": "new_app_user",
-    "password": "secure_password"
+    "password": "secure_password",
+    "application": "client_app_name"
   }
   ```
+  *Note: `application` is optional and defaults to `"default_app"`.*
 - **Response (201 Created)**:
   ```json
   {
@@ -284,6 +344,6 @@ Deletes the user and revokes associated tokens.
 2. **State Validation (CSRF Protection)**:
    Always pass a secure, unpredictable random string as the `state` parameter when sending a user to log in. Validate that the returning `state` parameter matches the original token to prevent cross-site request forgery.
 3. **Database Cleansing & Housekeeping**:
-   Expired codes and tokens remain in the database after use. The application automatically sweeps and drops expired rows from the database inside `OAuthProvider::init()` during active login queries to prevent table bloat.
+   Expired codes and tokens remain in the database after use. The application automatically sweeps and drops expired codes inside `OAuthProvider::createAuthCode()` and expired tokens inside `OAuthProvider::createAccessToken()` to prevent table bloat.
 4. **HTTPS Enforcement**:
    Ensure all production callback endpoints and token handlers strictly require SSL (HTTPS) to shield plaintext credentials and bearer tokens from wiretapping or interception.

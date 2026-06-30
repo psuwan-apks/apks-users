@@ -27,13 +27,20 @@ class OAuthProvider {
                     ]
                 ];
                 
-                $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_oauth_clients` (`client_id`, `client_secret`, `name`, `redirect_uri`, `scope`, `first_party`) VALUES (:client_id, :client_secret, :name, :redirect_uri, :scope, :first_party)");
+                $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_oauth_clients` (`client_id`, `client_secret`, `name`, `redirect_uri`, `allowed_redirect_uris`, `allowed_grant_types`, `allowed_scopes`, `scope`, `first_party`) VALUES (:client_id, :client_secret, :name, :redirect_uri, :allowed_redirect_uris, :allowed_grant_types, :allowed_scopes, :scope, :first_party)");
                 foreach ($defaultClients as $c) {
+                    $allowedUris = json_encode([$c['redirect_uri']]);
+                    $allowedGrants = json_encode(['authorization_code']);
+                    $allowedScopes = json_encode([$c['scope']]);
+
                     $stmtInsert->execute([
                         ':client_id' => $c['client_id'],
                         ':client_secret' => $c['client_secret'],
                         ':name' => $c['name'],
                         ':redirect_uri' => $c['redirect_uri'],
+                        ':allowed_redirect_uris' => $allowedUris,
+                        ':allowed_grant_types' => $allowedGrants,
+                        ':allowed_scopes' => $allowedScopes,
                         ':scope' => $c['scope'],
                         ':first_party' => $c['first_party']
                     ]);
@@ -43,12 +50,15 @@ class OAuthProvider {
                 $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM `tbl4users_oauth_clients` WHERE `client_id` = 'apks-users-client'");
                 $stmtCheck->execute();
                 if ($stmtCheck->fetchColumn() == 0) {
-                    $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_oauth_clients` (`client_id`, `client_secret`, `name`, `redirect_uri`, `scope`, `first_party`) VALUES (:client_id, :client_secret, :name, :redirect_uri, :scope, :first_party)");
+                    $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_oauth_clients` (`client_id`, `client_secret`, `name`, `redirect_uri`, `allowed_redirect_uris`, `allowed_grant_types`, `allowed_scopes`, `scope`, `first_party`) VALUES (:client_id, :client_secret, :name, :redirect_uri, :allowed_redirect_uris, :allowed_grant_types, :allowed_scopes, :scope, :first_party)");
                     $stmtInsert->execute([
                         ':client_id' => 'apks-users-client',
                         ':client_secret' => 'apks-users-secret',
                         ':name' => 'APKS Users Portal (First-Party)',
                         ':redirect_uri' => 'http://localhost:8000/index.php?page=user&action=oauth-callback',
+                        ':allowed_redirect_uris' => json_encode(['http://localhost:8000/index.php?page=user&action=oauth-callback']),
+                        ':allowed_grant_types' => json_encode(['authorization_code']),
+                        ':allowed_scopes' => json_encode(['profile']),
                         ':scope' => 'profile',
                         ':first_party' => 1
                     ]);
@@ -83,19 +93,22 @@ class OAuthProvider {
         }
     }
 
-    public static function createClient(string $name, string $redirectUri, string $scope = 'profile'): array {
+    public static function createClient(string $name, string $redirectUri, string $scope = 'profile', string $allowedRedirectUris = '[]', string $allowedGrantTypes = '[]', string $allowedScopes = '[]'): array {
         self::init();
         $clientId = 'client_' . token_gen(16);
         $clientSecret = 'secret_' . token_gen(32);
         
         try {
             $pdo = db_connected();
-            $stmt = $pdo->prepare("INSERT INTO `tbl4users_oauth_clients` (`client_id`, `client_secret`, `name`, `redirect_uri`, `scope`, `first_party`) VALUES (:client_id, :client_secret, :name, :redirect_uri, :scope, 0)");
+            $stmt = $pdo->prepare("INSERT INTO `tbl4users_oauth_clients` (`client_id`, `client_secret`, `name`, `redirect_uri`, `allowed_redirect_uris`, `allowed_grant_types`, `allowed_scopes`, `scope`, `first_party`) VALUES (:client_id, :client_secret, :name, :redirect_uri, :allowed_redirect_uris, :allowed_grant_types, :allowed_scopes, :scope, 0)");
             $stmt->execute([
                 ':client_id' => $clientId,
                 ':client_secret' => $clientSecret,
                 ':name' => $name,
                 ':redirect_uri' => $redirectUri,
+                ':allowed_redirect_uris' => $allowedRedirectUris,
+                ':allowed_grant_types' => $allowedGrantTypes,
+                ':allowed_scopes' => $allowedScopes,
                 ':scope' => $scope
             ]);
             
@@ -104,6 +117,9 @@ class OAuthProvider {
                 'client_secret' => $clientSecret,
                 'name' => $name,
                 'redirect_uri' => $redirectUri,
+                'allowed_redirect_uris' => $allowedRedirectUris,
+                'allowed_grant_types' => $allowedGrantTypes,
+                'allowed_scopes' => $allowedScopes,
                 'scope' => $scope
             ];
         } catch (PDOException $e) {
@@ -111,14 +127,17 @@ class OAuthProvider {
         }
     }
 
-    public static function updateClient(string $clientId, string $name, string $redirectUri, string $scope = 'profile'): bool {
+    public static function updateClient(string $clientId, string $name, string $redirectUri, string $scope = 'profile', string $allowedRedirectUris = '[]', string $allowedGrantTypes = '[]', string $allowedScopes = '[]'): bool {
         self::init();
         try {
             $pdo = db_connected();
-            $stmt = $pdo->prepare("UPDATE `tbl4users_oauth_clients` SET `name` = :name, `redirect_uri` = :redirect_uri, `scope` = :scope WHERE `client_id` = :client_id");
+            $stmt = $pdo->prepare("UPDATE `tbl4users_oauth_clients` SET `name` = :name, `redirect_uri` = :redirect_uri, `allowed_redirect_uris` = :allowed_redirect_uris, `allowed_grant_types` = :allowed_grant_types, `allowed_scopes` = :allowed_scopes, `scope` = :scope WHERE `client_id` = :client_id");
             $stmt->execute([
                 ':name' => $name,
                 ':redirect_uri' => $redirectUri,
+                ':allowed_redirect_uris' => $allowedRedirectUris,
+                ':allowed_grant_types' => $allowedGrantTypes,
+                ':allowed_scopes' => $allowedScopes,
                 ':scope' => $scope,
                 ':client_id' => $clientId
             ]);
@@ -147,7 +166,7 @@ class OAuthProvider {
         }
     }
 
-    public static function createAuthCode(string $clientId, string $redirectUri, string $username, string $scope, string $state): string {
+    public static function createAuthCode(string $clientId, string $redirectUri, string $username, string $scope, string $state, ?string $codeChallenge = null, ?string $codeChallengeMethod = null): string {
         self::init();
         $now = time();
         
@@ -161,7 +180,7 @@ class OAuthProvider {
             $code = 'code_' . token_gen(32);
             $expiresAt = $now + 300; // 5 minutes validity
 
-            $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_oauth_codes` (`code`, `client_id`, `redirect_uri`, `username`, `scope`, `state`, `expires_at`) VALUES (:code, :client_id, :redirect_uri, :username, :scope, :state, :expires_at)");
+            $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_oauth_codes` (`code`, `client_id`, `redirect_uri`, `username`, `scope`, `state`, `code_challenge`, `code_challenge_method`, `expires_at`) VALUES (:code, :client_id, :redirect_uri, :username, :scope, :state, :code_challenge, :code_challenge_method, :expires_at)");
             $stmtInsert->execute([
                 ':code' => $code,
                 ':client_id' => $clientId,
@@ -169,6 +188,8 @@ class OAuthProvider {
                 ':username' => $username,
                 ':scope' => $scope,
                 ':state' => $state,
+                ':code_challenge' => $codeChallenge,
+                ':code_challenge_method' => $codeChallengeMethod,
                 ':expires_at' => $expiresAt
             ]);
 
@@ -217,19 +238,23 @@ class OAuthProvider {
             $pdo = db_connected();
             
             // Clean up expired tokens
-            $stmtClean = $pdo->prepare("DELETE FROM `tbl4users_oauth_tokens` WHERE `expires_at` < :now");
+            $stmtClean = $pdo->prepare("DELETE FROM `tbl4users_oauth_tokens` WHERE `expires_at` < :now AND `refresh_token_expires_at` < :now");
             $stmtClean->execute([':now' => $now]);
 
             $accessToken = 'token_' . token_gen(40);
+            $refreshToken = 'refresh_' . token_gen(40);
             $expiresIn = 3600; // 1 hour
             $expiresAt = $now + $expiresIn;
+            $refreshExpiresAt = $now + (86400 * 30); // 30 days
 
-            $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_oauth_tokens` (`access_token`, `client_id`, `username`, `scope`, `expires_at`) VALUES (:access_token, :client_id, :username, :scope, :expires_at)");
+            $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_oauth_tokens` (`access_token`, `client_id`, `username`, `scope`, `refresh_token`, `refresh_token_expires_at`, `expires_at`) VALUES (:access_token, :client_id, :username, :scope, :refresh_token, :refresh_token_expires_at, :expires_at)");
             $stmtInsert->execute([
                 ':access_token' => $accessToken,
                 ':client_id' => $clientId,
                 ':username' => $username,
                 ':scope' => $scope,
+                ':refresh_token' => $refreshToken,
+                ':refresh_token_expires_at' => $refreshExpiresAt,
                 ':expires_at' => $expiresAt
             ]);
 
@@ -237,6 +262,7 @@ class OAuthProvider {
                 'access_token' => $accessToken,
                 'token_type' => 'Bearer',
                 'expires_in' => $expiresIn,
+                'refresh_token' => $refreshToken,
                 'scope' => $scope
             ];
         } catch (PDOException $e) {
@@ -250,7 +276,7 @@ class OAuthProvider {
         
         try {
             $pdo = db_connected();
-            $stmt = $pdo->prepare("SELECT * FROM `tbl4users_oauth_tokens` WHERE `access_token` = :token AND `expires_at` > :now");
+            $stmt = $pdo->prepare("SELECT * FROM `tbl4users_oauth_tokens` WHERE `access_token` = :token AND `expires_at` > :now AND `is_revoked` = 0");
             $stmt->execute([
                 ':token' => $token,
                 ':now' => $now
@@ -259,6 +285,72 @@ class OAuthProvider {
             return $item ?: null;
         } catch (PDOException $e) {
             return null;
+        }
+    }
+
+    public static function hasConsent(string $username, string $clientId, string $scopes): bool {
+        try {
+            $pdo = db_connected();
+            $stmtUser = $pdo->prepare("SELECT `id` FROM `tbl4users_users` WHERE `username` = :username");
+            $stmtUser->execute([':username' => $username]);
+            $userId = $stmtUser->fetchColumn();
+            if (!$userId) return false;
+
+            $stmtConsent = $pdo->prepare("SELECT `scopes_granted` FROM `tbl4users_oauth_consents` WHERE `user_id` = :user_id AND `client_id` = :client_id");
+            $stmtConsent->execute([':user_id' => $userId, ':client_id' => $clientId]);
+            $grantedScopesStr = $stmtConsent->fetchColumn();
+            
+            if (!$grantedScopesStr) return false;
+            $grantedScopes = json_decode($grantedScopesStr, true) ?: [];
+            $requestedScopes = explode(' ', $scopes);
+            
+            // Check if all requested scopes are in the granted scopes array
+            foreach ($requestedScopes as $s) {
+                if (!in_array($s, $grantedScopes)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public static function saveConsent(string $username, string $clientId, string $scopes): bool {
+        try {
+            $pdo = db_connected();
+            $stmtUser = $pdo->prepare("SELECT `id` FROM `tbl4users_users` WHERE `username` = :username");
+            $stmtUser->execute([':username' => $username]);
+            $userId = $stmtUser->fetchColumn();
+            if (!$userId) return false;
+
+            $requestedScopes = explode(' ', $scopes);
+            
+            // Fetch existing
+            $stmtConsent = $pdo->prepare("SELECT `scopes_granted` FROM `tbl4users_oauth_consents` WHERE `user_id` = :user_id AND `client_id` = :client_id");
+            $stmtConsent->execute([':user_id' => $userId, ':client_id' => $clientId]);
+            $existingStr = $stmtConsent->fetchColumn();
+            
+            $grantedScopes = $existingStr ? (json_decode($existingStr, true) ?: []) : [];
+            $newScopes = array_unique(array_merge($grantedScopes, $requestedScopes));
+            
+            if ($existingStr !== false) {
+                $stmtUpdate = $pdo->prepare("UPDATE `tbl4users_oauth_consents` SET `scopes_granted` = :scopes_granted WHERE `user_id` = :user_id AND `client_id` = :client_id");
+                return $stmtUpdate->execute([
+                    ':scopes_granted' => json_encode(array_values($newScopes)),
+                    ':user_id' => $userId,
+                    ':client_id' => $clientId
+                ]);
+            } else {
+                $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_oauth_consents` (`user_id`, `client_id`, `scopes_granted`) VALUES (:user_id, :client_id, :scopes_granted)");
+                return $stmtInsert->execute([
+                    ':user_id' => $userId,
+                    ':client_id' => $clientId,
+                    ':scopes_granted' => json_encode(array_values($newScopes))
+                ]);
+            }
+        } catch (PDOException $e) {
+            return false;
         }
     }
 }
@@ -295,7 +387,15 @@ if (isset($page) && $page === 'oauth') {
                     } elseif (!filter_var($redirect_uri, FILTER_VALIDATE_URL)) {
                         $error = 'Invalid Redirect URI format.';
                     } else {
-                        $new_client = OAuthProvider::createClient($name, $redirect_uri, $scope);
+                        $allowed_redirect_uris = trim($_POST['allowed_redirect_uris'] ?? '');
+                        $allowed_grant_types = trim($_POST['allowed_grant_types'] ?? '');
+                        $allowed_scopes = trim($_POST['allowed_scopes'] ?? '');
+                        
+                        $urisArray = $allowed_redirect_uris ? array_map('trim', explode(',', $allowed_redirect_uris)) : [$redirect_uri];
+                        $grantsArray = $allowed_grant_types ? array_map('trim', explode(',', $allowed_grant_types)) : ['authorization_code'];
+                        $scopesArray = $allowed_scopes ? array_map('trim', explode(',', $allowed_scopes)) : [$scope];
+
+                        $new_client = OAuthProvider::createClient($name, $redirect_uri, $scope, json_encode($urisArray), json_encode($grantsArray), json_encode($scopesArray));
                         $success = 'Client registered successfully!';
                         log_event('oauth_client_create', 'success', 'Client created: ' . $name . ' (' . $new_client['client_id'] . ')', $_SESSION['username']);
                     }
@@ -319,7 +419,15 @@ if (isset($page) && $page === 'oauth') {
                         $error = 'Invalid Redirect URI format.';
                     } else {
                         try {
-                            if (OAuthProvider::updateClient($client_id, $name, $redirect_uri, $scope)) {
+                            $allowed_redirect_uris = trim($_POST['allowed_redirect_uris'] ?? '');
+                            $allowed_grant_types = trim($_POST['allowed_grant_types'] ?? '');
+                            $allowed_scopes = trim($_POST['allowed_scopes'] ?? '');
+                            
+                            $urisArray = $allowed_redirect_uris ? array_map('trim', explode(',', $allowed_redirect_uris)) : [$redirect_uri];
+                            $grantsArray = $allowed_grant_types ? array_map('trim', explode(',', $allowed_grant_types)) : ['authorization_code'];
+                            $scopesArray = $allowed_scopes ? array_map('trim', explode(',', $allowed_scopes)) : [$scope];
+
+                            if (OAuthProvider::updateClient($client_id, $name, $redirect_uri, $scope, json_encode($urisArray), json_encode($grantsArray), json_encode($scopesArray))) {
                                 $success = 'Client application updated successfully!';
                                 log_event('oauth_client_update', 'success', 'Client updated: ' . $name . ' (' . $client_id . ')', $_SESSION['username']);
                             } else {
@@ -345,6 +453,8 @@ if (isset($page) && $page === 'oauth') {
             $response_type = get('response_type');
             $scope = get('scope', 'profile');
             $state = get('state');
+            $code_challenge = get('code_challenge');
+            $code_challenge_method = get('code_challenge_method');
 
             $client = OAuthProvider::findClient($client_id);
             if (!$client) {
@@ -372,15 +482,15 @@ if (isset($page) && $page === 'oauth') {
                 exit;
             }
 
-            // --- First-Party Auto-Approval ---
-            // If the requesting client is a first-party app, skip the consent screen entirely.
-            if (!empty($client['first_party'])) {
-                $code = OAuthProvider::createAuthCode($client_id, $redirect_uri, $_SESSION['username'], $scope, $state);
+            // --- First-Party Auto-Approval or Prior Consent ---
+            // If the requesting client is a first-party app, or user has consented before, skip the consent screen entirely.
+            if (!empty($client['first_party']) || OAuthProvider::hasConsent($_SESSION['username'], $client_id, $scope)) {
+                $code = OAuthProvider::createAuthCode($client_id, $redirect_uri, $_SESSION['username'], $scope, $state, $code_challenge, $code_challenge_method);
                 $redirect_target = $redirect_uri . (strpos($redirect_uri, '?') === false ? '?' : '&') . 'code=' . urlencode($code);
                 if (!empty($state)) {
                     $redirect_target .= '&state=' . urlencode($state);
                 }
-                log_event('oauth_authorize', 'auto-approved', 'First-party auto-approval for user ' . $_SESSION['username'] . ' on client: ' . $client_id, $_SESSION['username']);
+                log_event('oauth_authorize', 'auto-approved', 'Auto-approval for user ' . $_SESSION['username'] . ' on client: ' . $client_id, $_SESSION['username']);
                 header('Location: ' . $redirect_target);
                 exit;
             }
@@ -388,8 +498,13 @@ if (isset($page) && $page === 'oauth') {
             // --- Third-Party Consent Flow ---
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $decision = $_POST['decision'] ?? 'deny';
+                $remember = isset($_POST['remember_consent']) && $_POST['remember_consent'] === '1';
+
                 if ($decision === 'approve') {
-                    $code = OAuthProvider::createAuthCode($client_id, $redirect_uri, $_SESSION['username'], $scope, $state);
+                    if ($remember) {
+                        OAuthProvider::saveConsent($_SESSION['username'], $client_id, $scope);
+                    }
+                    $code = OAuthProvider::createAuthCode($client_id, $redirect_uri, $_SESSION['username'], $scope, $state, $code_challenge, $code_challenge_method);
                     $redirect_target = $redirect_uri . (strpos($redirect_uri, '?') === false ? '?' : '&') . 'code=' . urlencode($code);
                     if (!empty($state)) {
                         $redirect_target .= '&state=' . urlencode($state);

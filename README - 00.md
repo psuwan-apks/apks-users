@@ -129,10 +129,8 @@ Dual-language support (English and Thai) is toggled globally.
 ### 6. OAuth2 Identity Provider (IdP)
 The system acts as a standard-compliant stateless OAuth2 Identity Provider (IdP) serving internal first-party and external third-party client applications.
 - **First-Party Client Auto-Approval**: The host application itself runs as a registered first-party client (`apks-users-client`). It bypasses the consent prompt and logs users in seamlessly.
-- **Third-Party Client Consent Flow**: Standard client applications (such as the sandbox simulator) are presented with a consent screen prompting the user to manually Approve or Deny access. Users can check "Remember my consent" to auto-approve future requests.
-- **PKCE Support**: Secures the authorization code flow for public clients by requiring `code_challenge` and `code_verifier`.
-- **Refresh Tokens**: Automatically issues long-lived refresh tokens alongside access tokens to allow silent session renewals.
-- **End-user Management**: Authorized developers can manage client apps directly on the OAuth Client dashboard, configuring strict allowed redirect URIs, grant types, and scopes.
+- **Third-Party Client Consent Flow**: Standard client applications (such as the sandbox simulator) are presented with a consent screen prompting the user to manually Approve or Deny access.
+- **End-user Management**: Authorized developers can manage client apps directly on the OAuth Client dashboard.
 
 ### 7. Thai PDF Generation
 - Integrates TCPDF with the Thai National font **THSarabunPSK** (regular and bold).
@@ -157,15 +155,13 @@ A comprehensive suite to manage user records:
 The system uses a **No-Foreign-Key (MyISAM-compatible) relational schema** hosted on the `db4apks_webapp` MySQL database. Referential integrity is strictly maintained by application-layer operations.
 
 1. **User Accounts (`tbl4users_users`)**
-   Stores credentials, usernames, UUIDs (`uuid` as OIDC `sub`), status, failed login attempts, and their source `application` name (e.g., `'default_app'`). Default seeded users are `admin` (`admin123`) and `user` (`password`).
+   Stores credentials, usernames, and their source `application` name (e.g., `'default_app'`). Default seeded users are `admin` (`admin123`) and `user` (`password`).
 2. **Registered OAuth Clients (`tbl4users_oauth_clients`)**
-   Stores application profiles allowed to request client tokens, redirect targets, strict JSON arrays for `allowed_redirect_uris`, `allowed_grant_types`, `allowed_scopes`, and the `first_party` bypass flag.
+   Stores application profiles allowed to request client tokens, redirect targets, and the `first_party` bypass flag.
 3. **One-Time Codes (`tbl4users_oauth_codes`)**
-   Stores short-lived authorization codes (expired after 5 minutes) mapped to requests, supporting PKCE `code_challenge` and `code_challenge_method`.
+   Stores short-lived authorization codes (expired after 5 minutes) mapped to requests.
 4. **Access Tokens (`tbl4users_oauth_tokens`)**
-   Bearer access credentials and long-lived `refresh_token` mapped to client applications and users (expires in 1 hour).
-5. **User Consent (`tbl4users_oauth_consents`)**
-   Tracks scopes granted by a user to specific third-party clients for "Remember me" auto-approval.
+   Bearer access credentials mapped to client applications and users (expires in 1 hour).
 
 ---
 
@@ -383,7 +379,7 @@ The API utilizes **Client Credentials** authentication. The caller must authenti
 To expand the capabilities of the APKS platform, consider the following next development milestones:
 
 1. **Enhanced Client Management Features**:
-   - Introduce toggles to configure/revoke client first-party status, configure customizable client token lifetimes, and deactivate/ban accounts.
+   - Introduce toggles to configure/revoke client first-party status, manage supported redirect URIs, configure customizable client token lifetimes, and deactivate/ban accounts.
 2. **Menu Manager Advanced Features**:
    - Implement import/export functionality for `sidebar.json` with visual JSON schema validation.
    - Add localization helper tools within the menu editor to automatically map translation keys directly to `app/lang/en.php` and `app/lang/th.php`.

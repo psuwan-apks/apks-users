@@ -1,5 +1,17 @@
 <?php
 class User {
+    // Generate UUID v4
+    public static function generateUuid(): string {
+        return sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0x0fff) | 0x4000,
+            mt_rand(0, 0x3fff) | 0x8000,
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+        );
+    }
+
     // Ensure default users exist in the database and migrate JSON users if any
     public static function init(): void {
         try {
@@ -23,9 +35,10 @@ class User {
                     ]
                 ];
                 
-                $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`, `application`) VALUES (:username, :password_hash, :application)");
+                $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`uuid`, `username`, `password_hash`, `application`) VALUES (:uuid, :username, :password_hash, :application)");
                 foreach ($defaultUsers as $user) {
                     $stmtInsert->execute([
+                        ':uuid' => self::generateUuid(),
                         ':username' => $user['username'],
                         ':password_hash' => $user['password_hash'],
                         ':application' => $user['application']
@@ -36,8 +49,9 @@ class User {
                 $stmtUserCheck = $pdo->prepare("SELECT COUNT(*) FROM `tbl4users_users` WHERE LOWER(`username`) = LOWER('user')");
                 $stmtUserCheck->execute();
                 if ($stmtUserCheck->fetchColumn() == 0) {
-                    $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`) VALUES (:username, :password_hash)");
+                    $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`uuid`, `username`, `password_hash`) VALUES (:uuid, :username, :password_hash)");
                     $stmtInsert->execute([
+                        ':uuid' => self::generateUuid(),
                         ':username' => 'user',
                         ':password_hash' => password_hash('password', PASSWORD_DEFAULT)
                     ]);
@@ -52,7 +66,7 @@ class User {
             ];
             
             $stmtExists = $pdo->prepare("SELECT COUNT(*) FROM `tbl4users_users` WHERE LOWER(`username`) = LOWER(:username)");
-            $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`) VALUES (:username, :password_hash)");
+            $stmtInsert = $pdo->prepare("INSERT INTO `tbl4users_users` (`uuid`, `username`, `password_hash`) VALUES (:uuid, :username, :password_hash)");
             
             foreach ($jsonFiles as $path) {
                 if (file_exists($path)) {
@@ -64,6 +78,7 @@ class User {
                                 $stmtExists->execute([':username' => $u['username']]);
                                 if ($stmtExists->fetchColumn() == 0) {
                                     $stmtInsert->execute([
+                                        ':uuid' => self::generateUuid(),
                                         ':username' => $u['username'],
                                         ':password_hash' => $u['password_hash']
                                     ]);
@@ -99,10 +114,31 @@ class User {
     // Authenticate a user by username and password
     public static function authenticate(string $username, string $password): bool {
         $user = self::findByUsername($username);
-        if ($user && password_verify($password, $user['password_hash'])) {
-            return true;
+        if (!$user) {
+            return false;
         }
-        return false;
+
+        // Check if account is active
+        if (($user['status'] ?? 'active') !== 'active') {
+            return false;
+        }
+
+        try {
+            $pdo = db_connected();
+            if (password_verify($password, $user['password_hash'])) {
+                // Reset failed login attempts
+                $stmt = $pdo->prepare("UPDATE `tbl4users_users` SET `failed_login_attempts` = 0 WHERE `id` = :id");
+                $stmt->execute([':id' => $user['id']]);
+                return true;
+            } else {
+                // Increment failed login attempts
+                $stmt = $pdo->prepare("UPDATE `tbl4users_users` SET `failed_login_attempts` = `failed_login_attempts` + 1 WHERE `id` = :id");
+                $stmt->execute([':id' => $user['id']]);
+                return false;
+            }
+        } catch (PDOException $e) {
+            return false;
+        }
     }
 
     // Create a new user with hashed password
@@ -115,8 +151,9 @@ class User {
         
         try {
             $pdo = db_connected();
-            $stmt = $pdo->prepare("INSERT INTO `tbl4users_users` (`username`, `password_hash`, `application`) VALUES (:username, :password_hash, :application)");
+            $stmt = $pdo->prepare("INSERT INTO `tbl4users_users` (`uuid`, `username`, `password_hash`, `application`) VALUES (:uuid, :username, :password_hash, :application)");
             return $stmt->execute([
+                ':uuid' => self::generateUuid(),
                 ':username' => $username,
                 ':password_hash' => password_hash($password, PASSWORD_DEFAULT),
                 ':application' => $application

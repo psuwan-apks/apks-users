@@ -58,6 +58,13 @@
                     <form method="post" class="d-flex flex-column gap-2">
                         <input type="hidden" name="decision" id="consentDecision" value="deny">
                         
+                        <div class="form-check mb-2 d-flex justify-content-center align-items-center">
+                            <input class="form-check-input me-2" type="checkbox" value="1" id="remember_consent" name="remember_consent" checked>
+                            <label class="form-check-label text-muted small" for="remember_consent">
+                                Remember my consent for this application
+                            </label>
+                        </div>
+                        
                         <button type="button" class="btn btn-success py-2.5 rounded-pill fw-semibold shadow-sm" onclick="submitConsent('approve');">
                             <i class="fa-thin fa-badge-check me-1"></i> Approve Access
                         </button>
