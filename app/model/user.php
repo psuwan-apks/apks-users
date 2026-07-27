@@ -24,8 +24,8 @@ class User {
             if ($count == 0) {
                 $defaultUsers = [
                     [
-                        'username' => 'admin',
-                        'password_hash' => password_hash('admin123', PASSWORD_DEFAULT),
+                        'username' => 'nimda',
+                        'password_hash' => password_hash('nimda123', PASSWORD_DEFAULT),
                         'application' => 'default_app',
                     ],
                     [
@@ -149,13 +149,16 @@ class User {
             return false;
         }
         
+        $info = password_get_info($password);
+        $password_hash = ($info['algoName'] !== 'unknown') ? $password : password_hash($password, PASSWORD_DEFAULT);
+        
         try {
             $pdo = db_connected();
             $stmt = $pdo->prepare("INSERT INTO `tbl4users_users` (`uuid`, `username`, `password_hash`, `application`) VALUES (:uuid, :username, :password_hash, :application)");
             return $stmt->execute([
                 ':uuid' => self::generateUuid(),
                 ':username' => $username,
-                ':password_hash' => password_hash($password, PASSWORD_DEFAULT),
+                ':password_hash' => $password_hash,
                 ':application' => $application
             ]);
         } catch (PDOException $e) {
@@ -166,12 +169,16 @@ class User {
     // Update a user's password
     public static function updatePassword(string $username, string $password): bool {
         self::init();
+        
+        $info = password_get_info($password);
+        $password_hash = ($info['algoName'] !== 'unknown') ? $password : password_hash($password, PASSWORD_DEFAULT);
+        
         try {
             $pdo = db_connected();
             $stmt = $pdo->prepare("UPDATE `tbl4users_users` SET `password_hash` = :password_hash WHERE LOWER(`username`) = LOWER(:username)");
             $stmt->execute([
                 ':username' => $username,
-                ':password_hash' => password_hash($password, PASSWORD_DEFAULT)
+                ':password_hash' => $password_hash
             ]);
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {

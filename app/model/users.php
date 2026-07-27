@@ -14,7 +14,7 @@ if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin']) {
 }
 
 // Ensure user is admin
-if (strtolower($_SESSION['username'] ?? '') !== 'admin') {
+if (strtolower($_SESSION['username'] ?? '') !== 'nimda') {
     header('HTTP/1.0 404 Not Found');
     $view = $config['PATH_TO_VIEW'] . '404.php';
     return;

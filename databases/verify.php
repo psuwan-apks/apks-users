@@ -28,7 +28,7 @@ check(true, "Connected to MySQL: " . DB_NAME);
 
 // 2. Tables exist
 echo "\n[2. Tables]\n";
-$tables = ['tbl4users_users', 'tbl4users_oauth_clients', 'tbl4users_oauth_codes', 'tbl4users_oauth_tokens'];
+$tables = ['tbl4users_users', 'tbl4users_oauth_clients', 'tbl4users_oauth_codes', 'tbl4users_oauth_tokens', 'tbl4users_oauth_consents', 'tbl4users_roles', 'tbl4users_user_roles', 'tbl4users_permissions'];
 foreach ($tables as $t) {
     $res = $pdo->query("SHOW TABLES LIKE '$t'")->rowCount();
     check($res > 0, "Table exists: $t");
@@ -70,7 +70,7 @@ foreach (['tbl4users_oauth_codes','tbl4users_oauth_tokens'] as $t) {
 
 // 7. Credential sanity check
 echo "\n[7. Credentials]\n";
-foreach (['admin' => 'admin123', 'user' => 'password'] as $uname => $plain) {
+foreach (['nimda' => 'nimda123', 'user' => 'password'] as $uname => $plain) {
     $row = $pdo->prepare("SELECT `password_hash` FROM `tbl4users_users` WHERE `username` = ?");
     $row->execute([$uname]);
     $hash = $row->fetchColumn();
@@ -86,5 +86,15 @@ foreach ($clients as $cid) {
     $fp = $row->fetchColumn();
     check($fp !== false, "Client exists: $cid (first_party=$fp)");
 }
+
+// 9. OIDC User UUID checks
+echo "\n[9. OIDC User UUIDs]\n";
+$usersWithoutUuid = $pdo->query("SELECT COUNT(*) FROM `tbl4users_users` WHERE `uuid` IS NULL OR `uuid` = ''")->fetchColumn();
+check($usersWithoutUuid == 0, "All users have valid non-empty UUIDs (found $usersWithoutUuid missing UUIDs)");
+
+// 10. User Roles Check
+echo "\n[10. User Roles]\n";
+$userRoleExists = $pdo->query("SELECT COUNT(*) FROM `tbl4users_user_roles` WHERE `username` = 'nimda' AND `role_name` = 'admin'")->fetchColumn();
+check($userRoleExists > 0, "User 'nimda' has role 'admin' in tbl4users_user_roles");
 
 echo "\n" . ($ok ? "✅ ALL CHECKS PASSED\n" : "❌ SOME CHECKS FAILED\n") . "\n";
