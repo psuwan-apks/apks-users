@@ -127,6 +127,33 @@ Records explicit authorizations given by users to client applications to support
 | `scopes_granted` | JSON | JSON list of scopes granted to this client by this user. |
 | `granted_at` | TIMESTAMP | Date consent was recorded. Default: `CURRENT_TIMESTAMP`. |
 
+### 6. User Roles (`tbl4users_roles`)
+Stores role definitions.
+
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `id` | INT | Primary Key, Auto-increment. |
+| `role_name` | VARCHAR(50) | Unique name of the role (e.g. `'admin'`, `'editor'`, `'viewer'`). |
+| `created_at` | TIMESTAMP | Record creation date. Default: `CURRENT_TIMESTAMP`. |
+
+### 7. User Roles Mapping (`tbl4users_user_roles`)
+Maps users to their assigned role memberships (composite primary key on `username` and `role_name`).
+
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `username` | VARCHAR(50) | The username of the user. |
+| `role_name` | VARCHAR(50) | The name of the role mapped to the user. |
+| `created_at` | TIMESTAMP | Mapping registration timestamp. |
+
+### 8. Permissions (`tbl4users_permissions`)
+Reserved for granular capability/permissions storage.
+
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `id` | INT | Primary Key, Auto-increment. |
+| `permission_name` | VARCHAR(100) | Unique name of the permission. |
+| `created_at` | TIMESTAMP | Record creation date. |
+
 ---
 
 ## 📡 Core Endpoints
@@ -178,8 +205,8 @@ Provides resource details for validated tokens.
 - **Response (200 OK)**:
   ```json
   {
-    "sub": "admin",
-    "username": "admin",
+    "sub": "nimda",
+    "username": "nimda",
     "scope": "profile"
   }
   ```
@@ -187,10 +214,10 @@ Provides resource details for validated tokens.
   If the token has authorization for the `email` scope, a mock email address matched to the user is included:
   ```json
   {
-    "sub": "admin",
-    "username": "admin",
+    "sub": "nimda",
+    "username": "nimda",
     "scope": "profile email",
-    "email": "admin@internal.ecosystem",
+    "email": "nimda@internal.ecosystem",
     "email_verified": true
   }
   ```
@@ -233,7 +260,7 @@ Queries all system users.
     "users": [
       {
         "id": 1,
-        "username": "admin",
+        "username": "nimda",
         "application": "default_app",
         "created_at": "2026-06-17 04:15:50"
       },

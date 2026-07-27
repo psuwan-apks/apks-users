@@ -146,7 +146,7 @@ The system acts as a standard-compliant stateless OAuth2 Identity Provider (IdP)
 
 ### 9. Administrative User Management Console
 A comprehensive suite to manage user records:
-- **Visual Console**: Access `?page=users&action=users-view` to view a responsive dual-column list of users, search, reset passwords, or delete users (restricted to `admin` by default).
+- **Visual Console**: Access `?page=users&action=users-view` to view a responsive dual-column list of users, search, reset passwords, or delete users (restricted to the user `nimda` by default).
 - **SweetAlert2 Dialogs**: Modals and confirm windows provide fluid interactive actions and warnings for critical operations like account deletions.
 - **SSO Cleanup**: Deleting users automatically purges active/orphaned OAuth codes and tokens to maintain integrity.
 
@@ -157,7 +157,7 @@ A comprehensive suite to manage user records:
 The system uses a **No-Foreign-Key (MyISAM-compatible) relational schema** hosted on the `db4apks_webapp` MySQL database. Referential integrity is strictly maintained by application-layer operations.
 
 1. **User Accounts (`tbl4users_users`)**
-   Stores credentials, usernames, UUIDs (`uuid` as OIDC `sub`), status, failed login attempts, and their source `application` name (e.g., `'default_app'`). Default seeded users are `admin` (`admin123`) and `user` (`password`).
+   Stores credentials, usernames, UUIDs (`uuid` as OIDC `sub`), status, failed login attempts, and their source `application` name (e.g., `'default_app'`). Default seeded users are `nimda` (`nimda123`) and `user` (`password`).
 2. **Registered OAuth Clients (`tbl4users_oauth_clients`)**
    Stores application profiles allowed to request client tokens, redirect targets, strict JSON arrays for `allowed_redirect_uris`, `allowed_grant_types`, `allowed_scopes`, and the `first_party` bypass flag.
 3. **One-Time Codes (`tbl4users_oauth_codes`)**
@@ -166,6 +166,12 @@ The system uses a **No-Foreign-Key (MyISAM-compatible) relational schema** hoste
    Bearer access credentials and long-lived `refresh_token` mapped to client applications and users (expires in 1 hour).
 5. **User Consent (`tbl4users_oauth_consents`)**
    Tracks scopes granted by a user to specific third-party clients for "Remember me" auto-approval.
+6. **User Roles (`tbl4users_roles`)**
+   Stores role definitions (`id`, `role_name`, `created_at`). Default seeded roles: `admin`, `editor`, and `viewer`.
+7. **User Roles Mapping (`tbl4users_user_roles`)**
+   Associates usernames with assigned roles (`username`, `role_name`, `created_at`). For example, `nimda` has the `admin` role seeded.
+8. **Permissions (`tbl4users_permissions`)**
+   Reserved for granular capability/permissions storage (`id`, `permission_name`, `created_at`).
 
 ---
 
@@ -234,8 +240,8 @@ Navigate to **OAuth Clients** in the sidebar (or visit `http://localhost:8000/in
    **Response**:
    ```json
    {
-     "sub": "admin",
-     "username": "admin",
+     "sub": "nimda",
+     "username": "nimda",
      "scope": "profile"
    }
    ```
@@ -263,7 +269,7 @@ The API utilizes **Client Credentials** authentication. The caller must authenti
   {
     "status": "success",
     "users": [
-      { "id": 1, "username": "admin", "application": "default_app", "created_at": "2026-06-17 04:15:50" },
+      { "id": 1, "username": "nimda", "application": "default_app", "created_at": "2026-06-17 04:15:50" },
       { "id": 2, "username": "user", "application": "default_app", "created_at": "2026-06-17 04:15:50" }
     ]
   }
