@@ -75,6 +75,7 @@ switch (strtolower($action)) {
     case 'get':
     case 'list':
         $username = $_GET['username'] ?? $jsonData['username'] ?? '';
+        $appFilter = trim($_GET['app'] ?? $_GET['application'] ?? $jsonData['app'] ?? $jsonData['application'] ?? '');
         
         if (!empty($username)) {
             $user = User::findByUsername($username);
@@ -96,10 +97,14 @@ switch (strtolower($action)) {
             // Format list cleanly
             $formattedUsers = [];
             foreach ($users as $u) {
+                $userApp = $u['source'] ?? 'default_app';
+                if (!empty($appFilter) && strtolower($userApp) !== strtolower($appFilter)) {
+                    continue;
+                }
                 $formattedUsers[] = [
                     'id' => (int)$u['id'],
                     'username' => $u['username'],
-                    'application' => $u['source'] ?? 'default_app',
+                    'application' => $userApp,
                     'created_at' => $u['created_at']
                 ];
             }
